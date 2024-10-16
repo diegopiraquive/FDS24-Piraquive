@@ -1,143 +1,109 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "089211d6-5321-4287-a772-a485c9a9f5ce",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import streamlit as st\n",
-    "import pandas as pd\n",
-    "import seaborn as sns\n",
-    "import matplotlib.pyplot as plt\n",
-    "from scipy import stats\n",
-    "from sklearn.linear_model import LinearRegression\n",
-    "from sklearn.model_selection import train_test_split\n",
-    "from sklearn.metrics import mean_squared_error, r2_score\n",
-    "\n",
-    "# Load datasets from GitHub\n",
-    "churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Churn_Modelling.csv'\n",
-    "loan_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Loan_Default.csv'\n",
-    "\n",
-    "churn_df = pd.read_csv(churn_url)\n",
-    "loan_df = pd.read_csv(loan_url)\n",
-    "\n",
-    "# App Title\n",
-    "st.title(\"Financial Risk Prediction: Churn and Loan Default Analysis\")\n",
-    "\n",
-    "# Sidebar Filters\n",
-    "st.sidebar.header(\"Filter Data\")\n",
-    "credit_score_filter = st.sidebar.slider(\"Credit Score\", int(churn_df['CreditScore'].min()), int(churn_df['CreditScore'].max()), (300, 850))\n",
-    "balance_filter = st.sidebar.slider(\"Balance\", int(churn_df['Balance'].min()), int(churn_df['Balance'].max()), (0, int(churn_df['Balance'].max())))\n",
-    "\n",
-    "filtered_churn = churn_df[(churn_df['CreditScore'] >= credit_score_filter[0]) & (churn_df['CreditScore'] <= credit_score_filter[1]) & (churn_df['Balance'] >= balance_filter[0])]\n",
-    "filtered_loan = loan_df[loan_df['Credit_Score'].between(credit_score_filter[0], credit_score_filter[1])]\n",
-    "\n",
-    "# Display the filtered data\n",
-    "st.subheader(\"Filtered Churn Data\")\n",
-    "st.write(filtered_churn)\n",
-    "\n",
-    "st.subheader(\"Filtered Loan Data\")\n",
-    "st.write(filtered_loan)\n",
-    "\n",
-    "# Section: Initial Data Analysis (IDA)\n",
-    "st.subheader(\"Initial Data Analysis: Churn and Loan Datasets\")\n",
-    "\n",
-    "st.markdown(\"We begin by performing IDA on both the churn and loan datasets to understand the distribution and key characteristics of variables.\")\n",
-    "\n",
-    "# Display summary statistics\n",
-    "st.write(\"Summary Statistics for Churn Data\")\n",
-    "st.write(churn_df.describe())\n",
-    "\n",
-    "st.write(\"Summary Statistics for Loan Data\")\n",
-    "st.write(loan_df.describe())\n",
-    "\n",
-    "# Section: Missing Value Analysis\n",
-    "st.subheader(\"Missing Value Analysis\")\n",
-    "st.markdown(\"Visualize and handle missing values in the datasets.\")\n",
-    "\n",
-    "# Heatmaps for missing values\n",
-    "fig, ax = plt.subplots(1, 2, figsize=(10, 5))\n",
-    "sns.heatmap(churn_df.isnull(), ax=ax[0], cbar=False)\n",
-    "ax[0].set_title(\"Missing Values: Churn Data\")\n",
-    "sns.heatmap(loan_df.isnull(), ax=ax[1], cbar=False)\n",
-    "ax[1].set_title(\"Missing Values: Loan Data\")\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# Section: Correlation Analysis\n",
-    "st.subheader(\"Correlation Analysis\")\n",
-    "st.markdown(\"We analyze correlations between key variables in both datasets.\")\n",
-    "\n",
-    "# Correlation heatmap for churn dataset\n",
-    "fig, ax = plt.subplots(figsize=(10, 6))\n",
-    "sns.heatmap(churn_df.corr(), annot=True, cmap='coolwarm', ax=ax)\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# Correlation heatmap for loan dataset\n",
-    "fig, ax = plt.subplots(figsize=(10, 6))\n",
-    "sns.heatmap(loan_df.corr(), annot=True, cmap='coolwarm', ax=ax)\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# Section: Linear Regression Model\n",
-    "st.subheader(\"Linear Regression: Predicting Loan Amount\")\n",
-    "st.markdown(\"We used linear regression to predict loan amount based on key features from the loan dataset.\")\n",
-    "\n",
-    "# Split the data\n",
-    "X = loan_df[['income', 'loan_limit', 'Interest_rate_spread', 'Upfront_charges', 'rate_of_interest']]\n",
-    "y = loan_df['loan_amount']\n",
-    "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n",
-    "\n",
-    "# Train the linear regression model\n",
-    "lr = LinearRegression()\n",
-    "lr.fit(X_train, y_train)\n",
-    "y_pred = lr.predict(X_test)\n",
-    "\n",
-    "# Model performance\n",
-    "mse = mean_squared_error(y_test, y_pred)\n",
-    "r2 = r2_score(y_test, y_pred)\n",
-    "\n",
-    "st.write(f\"Mean Squared Error: {mse:.4f}\")\n",
-    "st.write(f\"R2 Score: {r2:.4f}\")\n",
-    "\n",
-    "# Visualize predicted vs actual\n",
-    "fig, ax = plt.subplots(figsize=(8, 6))\n",
-    "plt.scatter(y_test, y_pred, alpha=0.5)\n",
-    "plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)\n",
-    "plt.xlabel('Actual Loan Amount')\n",
-    "plt.ylabel('Predicted Loan Amount')\n",
-    "plt.title('Predicted vs Actual Loan Amount')\n",
-    "st.pyplot(fig)\n",
-    "\n",
-    "# Summary Section\n",
-    "st.subheader(\"Summary and Key Insights\")\n",
-    "st.markdown(\"\"\"\n",
-    "- Credit Score plays a crucial role in both churn and loan default prediction.\n",
-    "- Handling missing values with MICE imputation provided reliable data for further analysis.\n",
-    "- The linear regression model provides insights into how loan-related factors like income and rate of interest influence loan amount predictions.\n",
-    "\"\"\")\n"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.12.4"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+import streamlit as st
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load datasets from GitHub
+churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Churn_Modelling.csv'
+loan_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Loan_Default.csv'
+
+churn_df = pd.read_csv(churn_url)
+loan_df = pd.read_csv(loan_url)
+
+# App Title
+st.title("Financial Risk Prediction: Churn and Loan Default Analysis")
+
+# Sidebar Filters
+st.sidebar.header("Filter Data")
+credit_score_filter = st.sidebar.slider("Credit Score", int(churn_df['CreditScore'].min()), int(churn_df['CreditScore'].max()), (300, 850))
+balance_filter = st.sidebar.slider("Balance", int(churn_df['Balance'].min()), int(churn_df['Balance'].max()), (0, int(churn_df['Balance'].max())))
+
+filtered_churn = churn_df[(churn_df['CreditScore'] >= credit_score_filter[0]) & (churn_df['CreditScore'] <= credit_score_filter[1]) & (churn_df['Balance'] >= balance_filter[0])]
+filtered_loan = loan_df[loan_df['Credit_Score'].between(credit_score_filter[0], credit_score_filter[1])]
+
+# Display the filtered data
+st.subheader("Filtered Churn Data")
+st.write(filtered_churn)
+
+st.subheader("Filtered Loan Data")
+st.write(filtered_loan)
+
+# Section: Initial Data Analysis (IDA)
+st.subheader("Initial Data Analysis: Churn and Loan Datasets")
+st.markdown("We begin by performing IDA on both the churn and loan datasets to understand the distribution and key characteristics of variables.")
+
+# Display summary statistics
+st.write("Summary Statistics for Churn Data")
+st.write(churn_df.describe())
+
+st.write("Summary Statistics for Loan Data")
+st.write(loan_df.describe())
+
+# Section: Missing Value Analysis
+st.subheader("Missing Value Analysis")
+st.markdown("Visualize and handle missing values in the datasets.")
+
+# Heatmaps for missing values
+fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+sns.heatmap(churn_df.isnull(), ax=ax[0], cbar=False)
+ax[0].set_title("Missing Values: Churn Data")
+sns.heatmap(loan_df.isnull(), ax=ax[1], cbar=False)
+ax[1].set_title("Missing Values: Loan Data")
+st.pyplot(fig)
+
+# Section: Correlation Analysis
+st.subheader("Correlation Analysis")
+st.markdown("We analyze correlations between key variables in both datasets.")
+
+# Correlation heatmap for churn dataset
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(churn_df.corr(), annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+# Correlation heatmap for loan dataset
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(loan_df.corr(), annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+# Section: Linear Regression Model
+st.subheader("Linear Regression: Predicting Loan Amount")
+st.markdown("We used linear regression to predict loan amount based on key features from the loan dataset.")
+
+# Split the data
+X = loan_df[['income', 'loan_limit', 'Interest_rate_spread', 'Upfront_charges', 'rate_of_interest']]
+y = loan_df['loan_amount']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the linear regression model
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+y_pred = lr.predict(X_test)
+
+# Model performance
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+st.write(f"Mean Squared Error: {mse:.4f}")
+st.write(f"R2 Score: {r2:.4f}")
+
+# Visualize predicted vs actual
+fig, ax = plt.subplots(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.5)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+plt.xlabel('Actual Loan Amount')
+plt.ylabel('Predicted Loan Amount')
+plt.title('Predicted vs Actual Loan Amount')
+st.pyplot(fig)
+
+# Summary Section
+st.subheader("Summary and Key Insights")
+st.markdown("""
+- Credit Score plays a crucial role in both churn and loan default prediction.
+- Handling missing values with MICE imputation provided reliable data for further analysis.
+- The linear regression model provides insights into how loan-related factors like income and rate of interest influence loan amount predictions.
+""")
+
