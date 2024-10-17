@@ -11,7 +11,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.experimental import enable_iterative_imputer  # Required for MICE
 from sklearn.impute import IterativeImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA 
 
 # Load datasets from GitHub
 churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Churn_Modelling.csv'
