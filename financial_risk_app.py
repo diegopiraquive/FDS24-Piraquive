@@ -201,11 +201,29 @@ with tab1:
                          loan_data[['Credit_Score', 'loan_amount', 'Status', 'rate_of_interest', 'Upfront_charges', 'income']],
                          left_on='CreditScore', right_on='Credit_Score')
 
-    merged_corr = merged_df[['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited', 'loan_amount', 'Status', 'rate_of_interest', 'Upfront_charges', 'income']].corr()
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.heatmap(merged_corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-    st.pyplot(fig)
+    # Create a list of the available columns for selection
+    merged_columns = ['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited', 'loan_amount', 'Status', 
+                  'rate_of_interest', 'Upfront_charges', 'income']
 
+    # Multiselect widget for selecting columns to include in the heatmap
+    selected_columns = st.multiselect("Select Variables for Correlation Heatmap", options=merged_columns, default=merged_columns)
+
+    # Check if at least two columns are selected
+    if len(selected_columns) > 1:
+        # Create a correlation matrix for the selected columns
+        merged_corr = merged_df[selected_columns].corr()
+
+        # Plot the heatmap for the selected columns
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.heatmap(merged_corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+        ax.set_title("Correlation Heatmap of Selected Variables")
+        st.pyplot(fig)
+    else:
+        st.write("Please select at least 2 variables to display the correlation heatmap.")
+
+
+
+    
     # Hypothesis
     st.markdown("""
     ### Main Hypothesis: Credit Score's Impact on Dual Risk (Churn and Loan Default)
