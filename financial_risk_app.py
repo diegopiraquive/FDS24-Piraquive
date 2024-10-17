@@ -20,23 +20,29 @@ loan_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/mai
 churn_df = pd.read_csv(churn_url)
 loan_df = pd.read_csv(loan_url)
 
+# Create two tabs
+tab1, tab2 = st.tabs(["Data Analysis", "Predictive Model"])
+
+# Content for the first tab (Data Analysis)
+with tab1:
+
 # App Title
 st.title("Financial Risk Prediction: Churn and Loan Default Analysis")
 
 # Sidebar Filters
-st.sidebar.header("Filter Data")
-credit_score_filter = st.sidebar.slider("Credit Score", int(churn_df['CreditScore'].min()), int(churn_df['CreditScore'].max()), (300, 850))
-balance_filter = st.sidebar.slider("Balance", int(churn_df['Balance'].min()), int(churn_df['Balance'].max()), (0, int(churn_df['Balance'].max())))
+#st.sidebar.header("Filter Data")
+#credit_score_filter = st.sidebar.slider("Credit Score", int(churn_df['CreditScore'].min()), int(churn_df['CreditScore'].max()), (300, 850))
+#balance_filter = st.sidebar.slider("Balance", int(churn_df['Balance'].min()), int(churn_df['Balance'].max()), (0, int(churn_df['Balance'].max())))
 
-filtered_churn = churn_df[(churn_df['CreditScore'] >= credit_score_filter[0]) & (churn_df['CreditScore'] <= credit_score_filter[1]) & (churn_df['Balance'] >= balance_filter[0])]
-filtered_loan = loan_df[loan_df['Credit_Score'].between(credit_score_filter[0], credit_score_filter[1])]
+#filtered_churn = churn_df[(churn_df['CreditScore'] >= credit_score_filter[0]) & (churn_df['CreditScore'] <= credit_score_filter[1]) & (churn_df['Balance'] >= balance_filter[0])]
+#filtered_loan = loan_df[loan_df['Credit_Score'].between(credit_score_filter[0], credit_score_filter[1])]
 
 # Display the filtered data
-st.subheader("Filtered Churn Data")
-st.write(filtered_churn)
+#st.subheader("Filtered Churn Data")
+#st.write(filtered_churn)
 
-st.subheader("Filtered Loan Data")
-st.write(filtered_loan)
+#st.subheader("Filtered Loan Data")
+#st.write(filtered_loan)
 
 # Project Goal
 st.markdown("""
@@ -48,26 +54,35 @@ Develop a unified model to predict overall financial risk, combining both churn 
 st.subheader("Missing Value Analysis")
 
 # Heatmaps for missing values
-st.markdown("#### Heatmap to visualize missing values")
-fig, ax = plt.subplots(1, 2, figsize=(20, 4))
-sns.heatmap(churn_df.isnull(), cbar=False, ax=ax[0])
-ax[0].set_title("Missing Values: Churn Data")
-sns.heatmap(loan_df.isnull(), cbar=False, ax=ax[1])
-ax[1].set_title("Missing Values: Loan Data")
-st.pyplot(fig)
+st.markdown("#### Heatmap to visualize missing values in Loan Data")
+fig, ax = plt.subplots(figsize=(10, 6))  # Adjust the figure size
+sns.heatmap(loan_df.isnull(), cbar=False, ax=ax)  # Create the heatmap for loan_df
+ax.set_title("Missing Values: Loan Data")  # Add title
+st.pyplot(fig) 
 
 # Correlation Heatmap for Missing Values
-st.markdown("#### Correlation Heatmap for Missing Values (Loan Dataset)")
-missing_values_loan = loan_df.isnull()
-missing_corr_loan = missing_values_loan.corr()
-fig, ax = plt.subplots(figsize=(20, 8))
-sns.heatmap(missing_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
-plt.title("Correlation Heatmap of Missing Values")
+#st.markdown("#### Correlation Heatmap for Missing Values (Loan Dataset)")
+#missing_values_loan = loan_df.isnull()
+#missing_corr_loan = missing_values_loan.corr()
+#fig, ax = plt.subplots(figsize=(20, 8))
+#sns.heatmap(missing_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
+#plt.title("Correlation Heatmap of Missing Values")
+#st.pyplot(fig)
+
+
+numeric_loan_df = loan_df.select_dtypes(include=['float64', 'int64']) # Filter only the numerical columns from loan_df
+numeric_corr_loan = numeric_loan_df.corr() # Create a correlation matrix for the numerical columns
+# Plot the heatmap for numerical correlations
+st.markdown("#### Correlation Heatmap in Loan Data")
+fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size as needed
+sns.heatmap(numeric_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
+ax.set_title("Correlation Heatmap of Numerical Variables")
 st.pyplot(fig)
+
 
 st.markdown("""
 - The `rate_of_interest` and `Interest_rate_spread` variables have a very strong correlation (~0.94), suggesting a Missing at Random (MAR) pattern.
-- Logistic regression was applied to assess missingness.
+- Logistic regression was applied to assess missingness in variables with not clear correlation. This analysis helps to determine the missingness in these variables is influenced by other independent variables in the dataset.
 """)
 
 # Logistic regression results
@@ -87,7 +102,7 @@ loan_data['loan_limit'] = loan_df['loan_limit'].map({'cf': 1, 'ncf': 0})
 st.markdown("""
 - `loan_type`: One-Hot Encoding applied.
 - `open_credit`: Binary encoding applied.
-- `loan_limit`: Binary encoding applied (before MICE imputation).
+- `loan_limit`: Binary encoding applied.
 """)
 
 # MICE Imputation Section
@@ -210,5 +225,19 @@ st.markdown("""
 - Customers with lower credit scores are more likely to both churn and default on loans compared to those with higher credit scores.
 - CreditScore is a key variable in linking both datasets and understanding financial behaviors across different risk profiles.
 """)
+
+# Content for the second tab (Predictive Model)
+with tab2:
+    st.title("Predictive Model")
+    st.markdown("Under construction")
+
+
+ #Sidebar Filters
+st.sidebar.header("Filter Data")
+credit_score_filter = st.sidebar.slider("Credit Score", int(churn_df['CreditScore'].min()), int(churn_df['CreditScore'].max()), (300, 850))
+balance_filter = st.sidebar.slider("Balance", int(churn_df['Balance'].min()), int(churn_df['Balance'].max()), (0, int(churn_df['Balance'].max())))
+
+
+
 
 
