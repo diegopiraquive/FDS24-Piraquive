@@ -70,7 +70,7 @@ with tab1:
 
     st.markdown("""
     - Several variables with missing values have a very strong correlation, suggesting a Missing at Random (MAR) pattern.
-    - Logistic regression was applied to assess missingness in variables with not clear correlation. This analysis helps to determine the missingness in these variables is influenced by other independent variables in the dataset.
+    - Logistic regression was applied to assess missingness in variables with not clear correlation. This analysis helps to determine if the missingness is influenced by other independent variables in the dataset.
     """)
 
     # Logistic regression results
