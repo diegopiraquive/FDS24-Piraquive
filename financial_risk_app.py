@@ -44,12 +44,27 @@ with tab1:
     ax.set_title("Missing Values: Loan Data")  # Add title
     st.pyplot(fig)
 
+    # Display title in Streamlit
+    #st.title("Correlation Heatmap of Missing Values (Float64 and Int Columns)")
+    #numerical_loan_df = loan_df.select_dtypes(include=["float64", "int64"])
+    # Create a DataFrame that shows True for missing values, False for non-missing
+    #missing_values_loan = numerical_loan_df.isnull()
+    #missing_corr_loan = missing_values_loan.corr()
+    # Plot the correlation heatmap
+    #plt.figure(figsize=(10, 6))
+    #sns.heatmap(missing_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10})
+    #plt.title("Correlation Heatmap of Missing Values (Float64 and Int Columns)")
+    #st.pyplot(plt)
+
+    
     # Correlation Heatmap for Numerical Values
     numeric_loan_df = loan_df.select_dtypes(include=['float64', 'int64'])  # Filter only the numerical columns from loan_df
-    numeric_corr_loan = numeric_loan_df.corr()  # Create a correlation matrix for the numerical columns
+    missing_values_loan = numerical_loan_df.isnull()
+    missing_corr_loan = missing_values_loan.corr()
     st.markdown("#### Correlation Heatmap in Loan Data")
+    # Plot the correlation heatmap
     fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size as needed
-    sns.heatmap(numeric_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
+    sns.heatmap(missing_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
     ax.set_title("Correlation Heatmap of Numerical Variables")
     st.pyplot(fig)
 
@@ -195,13 +210,20 @@ with tab1:
     st.markdown("""
     ### Main Hypothesis: Credit Score's Impact on Dual Risk (Churn and Loan Default)
     - Customers with lower credit scores are more likely to both churn and default on loans compared to those with higher credit scores.
-    - CreditScore is a key variable in linking both datasets and understanding financial behaviors across different risk profiles.
+    - Continue analyzing relationship between CreditScore and the target variables Exited (churn) and Status (loan default) to see how financial behaviors differ across various CreditScore bands
+    """)
+
+    st.markdown("""
+    ### Second Hypothesis: Product Engagement as a Mitigator of Financial Risk
+    - Customers who engage with more bank products (NumOfProducts) are less likely to default on loans or churn, even if their credit score is lower.
+    - Higher engagement with financial products could indicate greater customer investment in their financial relationship with the bank, 
+    which may mitigate the likelihood of churn or default, even if the customer has a lower CreditScore
     """)
 
 # Content for the second tab (Predictive Model)
 with tab2:
     st.title("Predictive Model")
-    st.markdown("Under construction")
+    st.markdown("Under construction...")
 
     # Sidebar Filters
     st.sidebar.header("Filter Data")
