@@ -2,10 +2,13 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from scipy import stats
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
+from sklearn.experimental import enable_iterative_imputer  # Required for MICE
+from sklearn.impute import IterativeImputer
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 # Load datasets from GitHub
 churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Churn_Modelling.csv'
@@ -32,84 +35,177 @@ st.write(filtered_churn)
 st.subheader("Filtered Loan Data")
 st.write(filtered_loan)
 
-# Section: Initial Data Analysis (IDA)
-st.subheader("Initial Data Analysis: Churn and Loan Datasets")
-st.markdown("We begin by performing IDA on both the churn and loan datasets to understand the distribution and key characteristics of variables.")
-
-# Display summary statistics
-st.write("Summary Statistics for Churn Data")
-st.write(churn_df.describe())
-
-st.write("Summary Statistics for Loan Data")
-st.write(loan_df.describe())
+# Project Goal
+st.markdown("""
+### Project Goal:
+Develop a unified model to predict overall financial risk, combining both churn and loan default risks, using CreditScore and related financial behavior variables from both datasets.
+""")
 
 # Section: Missing Value Analysis
 st.subheader("Missing Value Analysis")
-st.markdown("Visualize and handle missing values in the datasets.")
 
 # Heatmaps for missing values
-fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-sns.heatmap(churn_df.isnull(), ax=ax[0], cbar=False)
+st.markdown("#### Heatmap to visualize missing values")
+fig, ax = plt.subplots(1, 2, figsize=(20, 4))
+sns.heatmap(churn_df.isnull(), cbar=False, ax=ax[0])
 ax[0].set_title("Missing Values: Churn Data")
-sns.heatmap(loan_df.isnull(), ax=ax[1], cbar=False)
+sns.heatmap(loan_df.isnull(), cbar=False, ax=ax[1])
 ax[1].set_title("Missing Values: Loan Data")
 st.pyplot(fig)
 
-# Section: Correlation Analysis
-st.subheader("Correlation Analysis")
-st.markdown("We analyze correlations between key variables in both datasets.")
-
-# Filter only numeric columns for churn dataset
-numeric_churn_df = churn_df.select_dtypes(include=['float64', 'int64'])
-
-# Correlation heatmap for churn dataset
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(numeric_churn_df.corr(), annot=True, cmap='coolwarm', ax=ax)
+# Correlation Heatmap for Missing Values
+st.markdown("#### Correlation Heatmap for Missing Values (Loan Dataset)")
+missing_values_loan = loan_df.isnull()
+missing_corr_loan = missing_values_loan.corr()
+fig, ax = plt.subplots(figsize=(20, 8))
+sns.heatmap(missing_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
+plt.title("Correlation Heatmap of Missing Values")
 st.pyplot(fig)
 
-# Filter only numeric columns for loan dataset
-numeric_loan_df = loan_df.select_dtypes(include=['float64', 'int64'])
+st.markdown("""
+- The `rate_of_interest` and `Interest_rate_spread` variables have a very strong correlation (~0.94), suggesting a Missing at Random (MAR) pattern.
+- Logistic regression was applied to assess missingness.
+""")
 
-# Correlation heatmap for loan dataset
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(numeric_loan_df.corr(), annot=True, cmap='coolwarm', ax=ax)
-st.pyplot(fig)
+# Logistic regression results
+st.write("Logistic regression results:")
+st.write("Loan limit missingness score: 0.978")
+st.write("Upfront charges missingness score: 0.825")
+st.write("Income missingness score: 0.938")
 
-# Section: Linear Regression Model
-st.subheader("Linear Regression: Predicting Loan Amount")
-st.markdown("We used linear regression to predict loan amount based on key features from the loan dataset.")
+# Encoding
+st.subheader("Encoding Categorical Variables")
+loan_data = loan_df.copy()
 
-# Split the data
-X = loan_df[['income', 'loan_limit', 'Interest_rate_spread', 'Upfront_charges', 'rate_of_interest']]
-y = loan_df['loan_amount']
+loan_data = pd.get_dummies(loan_data, columns=['loan_type'], drop_first=False)
+loan_data['open_credit'] = loan_df['open_credit'].map({'nopc': 0, 'opc': 1})
+loan_data['loan_limit'] = loan_df['loan_limit'].map({'cf': 1, 'ncf': 0})
+
+st.markdown("""
+- `loan_type`: One-Hot Encoding applied.
+- `open_credit`: Binary encoding applied.
+- `loan_limit`: Binary encoding applied (before MICE imputation).
+""")
+
+# MICE Imputation Section
+st.subheader("MICE Imputation")
+columns_to_impute = ['rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income', 'loan_limit']
+data_to_impute = loan_data[columns_to_impute].copy()
+
+# MICE Imputation
+mice_imputer = IterativeImputer(random_state=42, max_iter=50)
+data_imputed = pd.DataFrame(mice_imputer.fit_transform(data_to_impute), columns=columns_to_impute)
+data_imputed['loan_limit'] = data_imputed['loan_limit'].round().clip(0, 1)
+loan_data[columns_to_impute] = data_imputed[columns_to_impute]
+
+# Linear Regression with MICE Imputed Data
+X = loan_data[['income', 'loan_limit', 'Interest_rate_spread', 'Upfront_charges', 'rate_of_interest']]
+y = loan_data['loan_amount']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Train the linear regression model
 lr = LinearRegression()
 lr.fit(X_train, y_train)
-y_pred = lr.predict(X_test)
+y_pred_mice = lr.predict(X_test)
 
-# Model performance
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
+# MSE and R2 for MICE Imputation
+mse_mice = mean_squared_error(y_test, y_pred_mice)
+r2_mice = r2_score(y_test, y_pred_mice)
 
-st.write(f"Mean Squared Error: {mse:.4f}")
-st.write(f"R2 Score: {r2:.4f}")
+# Display MICE Imputation Results
+st.write(f"MICE Imputation Results:")
+st.write(f"Mean Squared Error: {mse_mice:.4f}")
+st.write(f"R2 Score: {r2_mice:.4f}")
 
-# Visualize predicted vs actual
-fig, ax = plt.subplots(figsize=(8, 6))
-plt.scatter(y_test, y_pred, alpha=0.5)
-plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
-plt.xlabel('Actual Loan Amount')
-plt.ylabel('Predicted Loan Amount')
-plt.title('Predicted vs Actual Loan Amount')
+# Comparison with Mean Imputation
+mean_imputer = SimpleImputer(strategy='mean')
+X_train_mean = pd.DataFrame(mean_imputer.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+X_test_mean = pd.DataFrame(mean_imputer.transform(X_test), columns=X_test.columns, index=X_test.index)
+lr_mean = LinearRegression()
+lr_mean.fit(X_train_mean, y_train)
+y_pred_mean = lr_mean.predict(X_test_mean)
+mse_mean = mean_squared_error(y_test, y_pred_mean)
+r2_mean = r2_score(y_test, y_pred_mean)
+
+# Compare Results
+st.write(f"\nMean Imputation Results:")
+st.write(f"Mean Squared Error: {mse_mean:.4f}")
+st.write(f"R2 Score: {r2_mean:.4f}")
+
+# Visualize: MICE vs Mean Imputation (Interactive)
+fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+ax[0].scatter(y_test, y_pred_mice, alpha=0.5)
+ax[0].plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+ax[0].set_xlabel('Actual Loan Amount')
+ax[0].set_ylabel('Predicted Loan Amount')
+ax[0].set_title('MICE Imputation: Predicted vs Actual')
+
+ax[1].scatter(y_test, y_pred_mean, alpha=0.5)
+ax[1].plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+ax[1].set_xlabel('Actual Loan Amount')
+ax[1].set_ylabel('Predicted Loan Amount')
+ax[1].set_title('Mean Imputation: Predicted vs Actual')
 st.pyplot(fig)
 
-# Summary Section
-st.subheader("Summary and Key Insights")
+# Descriptive Statistics
+st.subheader("Descriptive Statistics")
+st.write("Churn Dataset Statistics")
+st.write(churn_df.describe())
+st.write("Loan Dataset Statistics")
+st.write(loan_data.describe())
+
+# Outlier Detection
+st.subheader("Outlier Detection")
+numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
+numerical_loan = ['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']
+
+fig, ax = plt.subplots(1, 3, figsize=(15, 2.5))
+churn_df[numerical_churn].plot(kind='box', subplots=True, ax=ax)
+st.pyplot(fig)
+
+fig, ax = plt.subplots(2, 3, figsize=(15, 5))
+loan_data[numerical_loan].plot(kind='box', subplots=True, ax=ax)
+st.pyplot(fig)
+
 st.markdown("""
-- Credit Score plays a crucial role in both churn and loan default prediction.
-- Handling missing values with MICE imputation provided reliable data for further analysis.
-- The linear regression model provides insights into how loan-related factors like income and rate of interest influence loan amount predictions.
+We created box plots for key variables to visualize potential outliers. Outliers were identified in variables like `loan_amount`, `Upfront_charges`, and `income`.
 """)
+
+# Exploratory Data Analysis (PCA)
+st.subheader("PCA Analysis")
+
+scaler = StandardScaler()
+scaled_loan = scaler.fit_transform(loan_data[['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']])
+scaled_churn = scaler.fit_transform(churn_df[['CreditScore', 'NumOfProducts', 'Balance']])
+
+pca_loan = PCA(n_components=2)
+pca_churn = PCA(n_components=2)
+
+pca_loan_result = pca_loan.fit_transform(scaled_loan)
+pca_churn_result = pca_churn.fit_transform(scaled_churn)
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 2.5))
+ax[0].bar(range(1, 3), pca_loan.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
+ax[0].set_title("Variance Explained by Principal Components (Loan Data)")
+ax[1].bar(range(1, 3), pca_churn.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
+ax[1].set_title("Variance Explained by Principal Components (Churn Data)")
+st.pyplot(fig)
+
+# Merge and Correlation Matrix
+st.subheader("Correlation Matrix for Merged Data")
+merged_df = pd.merge(churn_df[['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited']],
+                     loan_data[['Credit_Score', 'loan_amount', 'Status', 'rate_of_interest', 'Upfront_charges', 'income']],
+                     left_on='CreditScore', right_on='Credit_Score')
+
+merged_corr = merged_df[['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited', 'loan_amount', 'Status', 'rate_of_interest', 'Upfront_charges', 'income']].corr()
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(merged_corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+st.pyplot(fig)
+
+# Hypothesis
+st.markdown("""
+### Main Hypothesis: Credit Score's Impact on Dual Risk (Churn and Loan Default)
+- Customers with lower credit scores are more likely to both churn and default on loans compared to those with higher credit scores.
+- CreditScore is a key variable in linking both datasets and understanding financial behaviors across different risk profiles.
+""")
+
 
