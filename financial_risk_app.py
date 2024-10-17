@@ -61,15 +61,15 @@ with tab1:
     numeric_loan_df = loan_df.select_dtypes(include=['float64', 'int64'])  # Filter only the numerical columns from loan_df
     missing_values_loan = numeric_loan_df.isnull()
     missing_corr_loan = missing_values_loan.corr()
-    st.markdown("#### Correlation Heatmap in Loan Data")
+    st.markdown("#### Correlation Heatmap of Missing Values in Loan Dataset")
     # Plot the correlation heatmap
     fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size as needed
     sns.heatmap(missing_corr_loan, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
-    ax.set_title("Correlation Heatmap of Numerical Variables")
+    #ax.set_title("Correlation Heatmap of Numerical Variables")
     st.pyplot(fig)
 
     st.markdown("""
-    - The `rate_of_interest` and `Interest_rate_spread` variables have a very strong correlation (~0.94), suggesting a Missing at Random (MAR) pattern.
+    - Several variables with missing values have a very strong correlation, suggesting a Missing at Random (MAR) pattern.
     - Logistic regression was applied to assess missingness in variables with not clear correlation. This analysis helps to determine the missingness in these variables is influenced by other independent variables in the dataset.
     """)
 
