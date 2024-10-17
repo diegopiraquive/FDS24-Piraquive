@@ -59,7 +59,7 @@ with tab1:
     
     # Correlation Heatmap for Numerical Values
     numeric_loan_df = loan_df.select_dtypes(include=['float64', 'int64'])  # Filter only the numerical columns from loan_df
-    missing_values_loan = numerical_loan_df.isnull()
+    missing_values_loan = numeric_loan_df.isnull()
     missing_corr_loan = missing_values_loan.corr()
     st.markdown("#### Correlation Heatmap in Loan Data")
     # Plot the correlation heatmap
