@@ -1,14 +1,16 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
+from scipy.stats import zscore
+from scipy import stats
+import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.experimental import enable_iterative_imputer  # Required for MICE
-from sklearn.impute import IterativeImputer
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
+from sklearn.experimental import enable_iterative_imputer  # Required for MICE
+from sklearn.impute import IterativeImputer, SimpleImputer
+from sklearn.model_selection import train_test_split
 
 # Load datasets from GitHub
 churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Churn_Modelling.csv'
