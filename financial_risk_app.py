@@ -59,14 +59,20 @@ st.pyplot(fig)
 st.subheader("Correlation Analysis")
 st.markdown("We analyze correlations between key variables in both datasets.")
 
+# Filter only numeric columns for churn dataset
+numeric_churn_df = churn_df.select_dtypes(include=['float64', 'int64'])
+
 # Correlation heatmap for churn dataset
 fig, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(churn_df.corr(), annot=True, cmap='coolwarm', ax=ax)
+sns.heatmap(numeric_churn_df.corr(), annot=True, cmap='coolwarm', ax=ax)
 st.pyplot(fig)
+
+# Filter only numeric columns for loan dataset
+numeric_loan_df = loan_df.select_dtypes(include=['float64', 'int64'])
 
 # Correlation heatmap for loan dataset
 fig, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(loan_df.corr(), annot=True, cmap='coolwarm', ax=ax)
+sns.heatmap(numeric_loan_df.corr(), annot=True, cmap='coolwarm', ax=ax)
 st.pyplot(fig)
 
 # Section: Linear Regression Model
