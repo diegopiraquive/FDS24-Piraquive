@@ -23,7 +23,7 @@ churn_df = pd.read_csv(churn_url)
 loan_df = pd.read_csv(loan_url)
 
 # Create two tabs
-tab1, tab2 = st.tabs(["Data Analysis", "Predictive Model"])
+tab1, tab2 = st.tabs(["EDA", "IDA"])
 
 # Content for the first tab (Data Analysis)
 with tab1:
