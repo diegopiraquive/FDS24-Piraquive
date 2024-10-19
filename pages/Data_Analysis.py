@@ -23,12 +23,71 @@ churn_df = pd.read_csv(churn_url)
 loan_df = pd.read_csv(loan_url)
 
 # Create two tabs
-tab1, tab2 = st.tabs(["EDA", "IDA"])
+tab1, tab2 = st.tabs(["IDA", "EDA"])
 
 # Content for the first tab (Data Analysis)
 with tab1:
+
+# Sidebar navigation
+st.sidebar.title("Navigation")
+section = st.sidebar.selectbox("Select a section:", 
+                               ["Univariate Analysis", "Bivariate Analysis", "Multivariate Analysis", 
+                                "Correlation Analysis", "Hypothesis Generation"])
+
+# Univariate Analysis Section
+if section == "Univariate Analysis":
+    st.title("Univariate Analysis")
+    st.subheader("Histograms and Box Plots for Numeric Variables")
+    # Example: You can replace this with your actual plots or analysis
+    numeric_variable = st.selectbox("Select a numeric variable:", ["Age", "Balance", "Income"])
+    st.write(f"Histogram and Box Plot of {numeric_variable}")
+    # Add your actual plotting code here (e.g., using matplotlib or seaborn)
+    # Example plot:
+    st.write("Here, add the plot for the selected numeric variable.")
+    # Example with a placeholder:
+    st.pyplot()  # Replace with actual figure
+
+# Bivariate Analysis Section
+elif section == "Bivariate Analysis":
+    st.title("Bivariate Analysis")
+    st.subheader("Scatter Plots for Pairs of Variables")
+    # Example: You can replace this with your actual analysis
+    st.write("Scatter plots and correlation analysis will be shown here.")
+
+# Multivariate Analysis Section
+elif section == "Multivariate Analysis":
+    st.title("Multivariate Analysis")
+    st.subheader("Analysis involving multiple variables.")
+    # Example: You can replace this with your actual analysis
+
+# Correlation Analysis Section
+elif section == "Correlation Analysis":
+    st.title("Correlation Analysis")
+    st.subheader("Heatmap of correlations between variables")
+    # Example: Add correlation matrix and heatmap code here
+
+# Hypothesis Generation Section
+elif section == "Hypothesis Generation":
+    st.title("Hypothesis Generation")
+    st.subheader("Generate hypotheses based on the data.")
+    # Example: Add hypothesis generation content here
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
     # App Title
-    st.title("Exploratory Data Analysis (EDA)")
+    st.title("Initial Data Analysis (IDA)")
 
     # Project Goal
     #st.markdown("""
@@ -177,6 +236,14 @@ with tab1:
     We created box plots for key variables to visualize potential outliers. Outliers were identified in variables like `loan_amount`, `Upfront_charges`, and `income`.
     """)
 
+    
+
+# Content for the second tab (Predictive Model)
+with tab2:
+    st.title("Exploratory Data Analysis (EDA")
+    st.markdown("Under construction...")
+
+
     # Exploratory Data Analysis (PCA)
     st.subheader("PCA Analysis")
 
@@ -240,11 +307,7 @@ with tab1:
     which may mitigate the likelihood of churn or default, even if the customer has a lower CreditScore
     """)
 
-# Content for the second tab (Predictive Model)
-with tab2:
-    st.title("Initial Data Analysis (IDA")
-    st.markdown("Under construction...")
-
+    
     # Sidebar Filters
     #st.sidebar.header("Filter Data")
     #credit_score_filter = st.sidebar.slider("Credit Score", int(churn_df['CreditScore'].min()), int(churn_df['CreditScore'].max()), (300, 850))
