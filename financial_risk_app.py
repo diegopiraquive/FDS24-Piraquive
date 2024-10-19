@@ -32,3 +32,4 @@ Develop a unified model to predict overall financial risk, combining both churn 
 
 st.image("https://cdn.corporatefinanceinstitute.com/assets/tools-financial-risk-management-1.jpeg", use_column_width=True)
     
+# The application of the streamlit app was inspired in the analysis made in the Piraquive_CMSE830_Proyect.ipynb file and with assistant from ChatGPT 4o on October 2024. 
