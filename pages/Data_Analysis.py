@@ -183,9 +183,9 @@ with tab1:
 
 # Content for the second tab (Predictive Model)
 with tab2:
-    st.title("Exploratory Data Analysis (EDA")
+    st.title("Exploratory Data Analysis (EDA)"
     # Sidebar navigation
-    st.sidebar.title("Navigation")
+    st.sidebar.title("Navigation for EDA")
     section = st.sidebar.selectbox("Select a section:", 
                                ["Univariate Analysis", "Bivariate Analysis", "Multivariate Analysis", 
                                 "Correlation Analysis", "Hypothesis Generation"])
@@ -226,33 +226,90 @@ with tab2:
     elif section == "Bivariate Analysis":
         st.title("Bivariate Analysis")
         st.subheader("Scatter Plots for Pairs of Variables")
-        # Example: You can replace this with your actual analysis
-        st.write("Scatter plots and correlation analysis will be shown here.")
+
+        # Define the numerical columns for both datasets
+        numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
+        numerical_loan = ['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']
+        
+        # Combine the columns into one list for the dropdowns
+        all_numerical_columns = {
+            "Churn Data": numerical_churn,
+            "Loan Data": numerical_loan
+        }
+        
+        # Create the two dropdowns for selecting variables
+        dataset_choice_1 = st.selectbox("Select Dataset for X-axis Variable:", ["Churn Data", "Loan Data"])
+        column_choice_1 = st.selectbox("Select X-axis Variable:", all_numerical_columns[dataset_choice_1])
+    
+        dataset_choice_2 = st.selectbox("Select Dataset for Y-axis Variable:", ["Churn Data", "Loan Data"])
+        column_choice_2 = st.selectbox("Select Y-axis Variable:", all_numerical_columns[dataset_choice_2])
+    
+        # Get the selected DataFrame for the chosen variables
+        if dataset_choice_1 == "Churn Data":
+            selected_df_1 = churn_df
+        else:
+            selected_df_1 = loan_df
+    
+        if dataset_choice_2 == "Churn Data":
+            selected_df_2 = churn_df
+        else:
+            selected_df_2 = loan_df
+    
+        # Display the selected columns
+        st.write(f"Selected X-axis Variable: {column_choice_1} from {dataset_choice_1}")
+        st.write(f"Selected Y-axis Variable: {column_choice_2} from {dataset_choice_2}")
+    
+        # Create a scatter plot
+        fig, ax = plt.subplots(figsize=(8, 5))
+        sns.scatterplot(x=selected_df_1[column_choice_1], y=selected_df_2[column_choice_2], ax=ax)
+        ax.set_title(f'Scatter Plot: {column_choice_1} vs {column_choice_2}')
+    
+        # Display the scatter plot in Streamlit
+        st.pyplot(fig)
+
     
     # Multivariate Analysis Section
     elif section == "Multivariate Analysis":
         st.title("Multivariate Analysis")
 
 
-    # Exploratory Data Analysis (PCA)
+
         st.subheader("PCA Analysis")
     
+        # Define a dropdown for selecting the number of components
+        n_components = st.selectbox("Select Number of PCA Components:", [2, 3, 4, 5, 6])
+    
+        # Standardize the data for PCA
         scaler = StandardScaler()
         scaled_loan = scaler.fit_transform(loan_data[['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']])
         scaled_churn = scaler.fit_transform(churn_df[['CreditScore', 'NumOfProducts', 'Balance']])
     
-        pca_loan = PCA(n_components=2)
-        pca_churn = PCA(n_components=2)
+        # Apply PCA with user-selected number of components
+        pca_loan = PCA(n_components=n_components)
+        pca_churn = PCA(n_components=n_components)
     
         pca_loan_result = pca_loan.fit_transform(scaled_loan)
         pca_churn_result = pca_churn.fit_transform(scaled_churn)
     
-        fig, ax = plt.subplots(1, 2, figsize=(12, 2.5))
-        ax[0].bar(range(1, 3), pca_loan.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
-        ax[0].set_title("Variance Explained by Principal Components (Loan Data)")
-        ax[1].bar(range(1, 3), pca_churn.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
-        ax[1].set_title("Variance Explained by Principal Components (Churn Data)")
+        # Display the variance explained by the selected components
+        fig, ax = plt.subplots(1, 2, figsize=(12, 3))
+        ax[0].bar(range(1, n_components + 1), pca_loan.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, n_components + 1)])
+        ax[0].set_title(f"Variance Explained by {n_components} Components (Loan Data)")
+        
+        ax[1].bar(range(1, n_components + 1), pca_churn.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, n_components + 1)])
+        ax[1].set_title(f"Variance Explained by {n_components} Components (Churn Data)")
+        
         st.pyplot(fig)
+    
+        # Display the names of the components (principal features)
+        st.markdown("### Loan Data PCA Components:")
+        loan_pca_components = pd.DataFrame(pca_loan.components_, columns=['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income'])
+        st.write(loan_pca_components)
+    
+        st.markdown("### Churn Data PCA Components:")
+        churn_pca_components = pd.DataFrame(pca_churn.components_, columns=['CreditScore', 'NumOfProducts', 'Balance'])
+        st.write(churn_pca_components)
+
     
     # Correlation Analysis Section
     elif section == "Correlation Analysis":
