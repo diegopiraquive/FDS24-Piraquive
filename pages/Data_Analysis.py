@@ -27,49 +27,7 @@ tab1, tab2 = st.tabs(["IDA", "EDA"])
 
 # Content for the first tab (Data Analysis)
 with tab1:
-    # Sidebar navigation
-    st.sidebar.title("Navigation")
-    section = st.sidebar.selectbox("Select a section:", 
-                               ["Univariate Analysis", "Bivariate Analysis", "Multivariate Analysis", 
-                                "Correlation Analysis", "Hypothesis Generation"])
-
-    # Univariate Analysis Section
-    if section == "Univariate Analysis":
-        st.title("Univariate Analysis")
-        st.subheader("Histograms and Box Plots for Numeric Variables")
-        # Example: You can replace this with your actual plots or analysis
-        numeric_variable = st.selectbox("Select a numeric variable:", ["Age", "Balance", "Income"])
-        st.write(f"Histogram and Box Plot of {numeric_variable}")
-        # Add your actual plotting code here (e.g., using matplotlib or seaborn)
-        # Example plot:
-        st.write("Here, add the plot for the selected numeric variable.")
-        # Example with a placeholder:
-        st.pyplot()  # Replace with actual figure
-
-        # Bivariate Analysis Section
-    elif section == "Bivariate Analysis":
-        st.title("Bivariate Analysis")
-        st.subheader("Scatter Plots for Pairs of Variables")
-        # Example: You can replace this with your actual analysis
-        st.write("Scatter plots and correlation analysis will be shown here.")
     
-    # Multivariate Analysis Section
-    elif section == "Multivariate Analysis":
-        st.title("Multivariate Analysis")
-        st.subheader("Analysis involving multiple variables.")
-        # Example: You can replace this with your actual analysis
-    
-    # Correlation Analysis Section
-    elif section == "Correlation Analysis":
-        st.title("Correlation Analysis")
-        st.subheader("Heatmap of correlations between variables")
-        # Example: Add correlation matrix and heatmap code here
-    
-    # Hypothesis Generation Section
-    elif section == "Hypothesis Generation":
-        st.title("Hypothesis Generation")
-        st.subheader("Generate hypotheses based on the data.")
-        # Example: Add hypothesis generation content here
 
     # App Title
     st.title("Initial Data Analysis (IDA)")
@@ -226,71 +184,123 @@ with tab1:
 # Content for the second tab (Predictive Model)
 with tab2:
     st.title("Exploratory Data Analysis (EDA")
-    st.markdown("Under construction...")
+    # Sidebar navigation
+    st.sidebar.title("Navigation")
+    section = st.sidebar.selectbox("Select a section:", 
+                               ["Univariate Analysis", "Bivariate Analysis", "Multivariate Analysis", 
+                                "Correlation Analysis", "Hypothesis Generation"])
+
+    # Univariate Analysis Section
+    if section == "Univariate Analysis":
+        st.title("Univariate Analysis")
+        st.subheader("Histograms and Box Plots for Numeric Variables")
+        
+        # Define the numerical columns for both datasets
+        numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
+        numerical_loan = ['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']
+        
+        # Create the two dropdowns
+        dataset_choice = st.selectbox("Select a Dataset:", ["Churn Data", "Loan Data"])
+        
+        if dataset_choice == "Churn Data":
+            column_choice = st.selectbox("Select a Numeric Variable:", numerical_churn)
+            selected_df = churn_df
+        elif dataset_choice == "Loan Data":
+            column_choice = st.selectbox("Select a Numeric Variable:", numerical_loan)
+            selected_df = loan_data
+        
+        # Display the selected column's histogram
+        st.write(f"Selected Dataset: {dataset_choice}")
+        st.write(f"Selected Column: {column_choice}")
+        
+        # Plot the histogram
+        fig, ax = plt.subplots(figsize=(8, 5))
+        
+        sns.histplot(selected_df[column_choice], bins=20, ax=ax, kde=True)
+        ax.set_title(f'Histogram of {column_choice}')
+        
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+
+        # Bivariate Analysis Section
+    elif section == "Bivariate Analysis":
+        st.title("Bivariate Analysis")
+        st.subheader("Scatter Plots for Pairs of Variables")
+        # Example: You can replace this with your actual analysis
+        st.write("Scatter plots and correlation analysis will be shown here.")
+    
+    # Multivariate Analysis Section
+    elif section == "Multivariate Analysis":
+        st.title("Multivariate Analysis")
 
 
     # Exploratory Data Analysis (PCA)
-    st.subheader("PCA Analysis")
+        st.subheader("PCA Analysis")
+    
+        scaler = StandardScaler()
+        scaled_loan = scaler.fit_transform(loan_data[['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']])
+        scaled_churn = scaler.fit_transform(churn_df[['CreditScore', 'NumOfProducts', 'Balance']])
+    
+        pca_loan = PCA(n_components=2)
+        pca_churn = PCA(n_components=2)
+    
+        pca_loan_result = pca_loan.fit_transform(scaled_loan)
+        pca_churn_result = pca_churn.fit_transform(scaled_churn)
+    
+        fig, ax = plt.subplots(1, 2, figsize=(12, 2.5))
+        ax[0].bar(range(1, 3), pca_loan.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
+        ax[0].set_title("Variance Explained by Principal Components (Loan Data)")
+        ax[1].bar(range(1, 3), pca_churn.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
+        ax[1].set_title("Variance Explained by Principal Components (Churn Data)")
+        st.pyplot(fig)
+    
+    # Correlation Analysis Section
+    elif section == "Correlation Analysis":
+        st.title("Correlation Analysis")
 
-    scaler = StandardScaler()
-    scaled_loan = scaler.fit_transform(loan_data[['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']])
-    scaled_churn = scaler.fit_transform(churn_df[['CreditScore', 'NumOfProducts', 'Balance']])
-
-    pca_loan = PCA(n_components=2)
-    pca_churn = PCA(n_components=2)
-
-    pca_loan_result = pca_loan.fit_transform(scaled_loan)
-    pca_churn_result = pca_churn.fit_transform(scaled_churn)
-
-    fig, ax = plt.subplots(1, 2, figsize=(12, 2.5))
-    ax[0].bar(range(1, 3), pca_loan.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
-    ax[0].set_title("Variance Explained by Principal Components (Loan Data)")
-    ax[1].bar(range(1, 3), pca_churn.explained_variance_ratio_, tick_label=[f"PC{i}" for i in range(1, 3)])
-    ax[1].set_title("Variance Explained by Principal Components (Churn Data)")
-    st.pyplot(fig)
 
     # Merge and Correlation Matrix
-    st.subheader("Correlation Matrix for Merged Data")
-    merged_df = pd.merge(churn_df[['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited']],
-                         loan_data[['Credit_Score', 'loan_amount', 'Status', 'rate_of_interest', 'Upfront_charges', 'income']],
-                         left_on='CreditScore', right_on='Credit_Score')
-
-    # Create a list of the available columns for selection
-    merged_columns = ['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited', 'loan_amount', 'Status', 
-                  'rate_of_interest', 'Upfront_charges', 'income']
-
-    # Multiselect widget for selecting columns to include in the heatmap
-    selected_columns = st.multiselect("Select Variables for Correlation Heatmap", options=merged_columns, default=merged_columns)
-
-    # Check if at least two columns are selected
-    if len(selected_columns) > 1:
-        # Create a correlation matrix for the selected columns
-        merged_corr = merged_df[selected_columns].corr()
-
-        # Plot the heatmap for the selected columns
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(merged_corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-        ax.set_title("Correlation Heatmap of Selected Variables")
-        st.pyplot(fig)
-    else:
-        st.write("Please select at least 2 variables to display the correlation heatmap.")
-
-
-
+        st.subheader("Correlation Matrix for Merged Data")
+        merged_df = pd.merge(churn_df[['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited']],
+                             loan_data[['Credit_Score', 'loan_amount', 'Status', 'rate_of_interest', 'Upfront_charges', 'income']],
+                             left_on='CreditScore', right_on='Credit_Score')
     
-    # Hypothesis
-    st.markdown("""
-    ### Main Hypothesis: Credit Score's Impact on Dual Risk (Churn and Loan Default)
-    - Customers with lower credit scores are more likely to both churn and default on loans compared to those with higher credit scores.
-    - Continue analyzing relationship between CreditScore and the target variables Exited (churn) and Status (loan default) to see how financial behaviors differ across various CreditScore bands
-    """)
-
-    st.markdown("""
-    ### Second Hypothesis: Product Engagement as a Mitigator of Financial Risk
-    - Customers who engage with more bank products (NumOfProducts) are less likely to default on loans or churn, even if their credit score is lower.
-    - Higher engagement with financial products could indicate greater customer investment in their financial relationship with the bank, 
-    which may mitigate the likelihood of churn or default, even if the customer has a lower CreditScore
-    """)
+        # Create a list of the available columns for selection
+        merged_columns = ['CreditScore', 'NumOfProducts', 'HasCrCard', 'Balance', 'Exited', 'loan_amount', 'Status', 
+                      'rate_of_interest', 'Upfront_charges', 'income']
+    
+        # Multiselect widget for selecting columns to include in the heatmap
+        selected_columns = st.multiselect("Select Variables for Correlation Heatmap", options=merged_columns, default=merged_columns)
+    
+        # Check if at least two columns are selected
+        if len(selected_columns) > 1:
+            # Create a correlation matrix for the selected columns
+            merged_corr = merged_df[selected_columns].corr()
+    
+            # Plot the heatmap for the selected columns
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.heatmap(merged_corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+            ax.set_title("Correlation Heatmap of Selected Variables")
+            st.pyplot(fig)
+        else:
+            st.write("Please select at least 2 variables to display the correlation heatmap.")
+        
+    # Hypothesis Generation Section
+    elif section == "Hypothesis Generation":
+        st.title("Hypothesis Generation") 
+        # Hypothesis
+        st.markdown("""
+        ### Main Hypothesis: Credit Score's Impact on Dual Risk (Churn and Loan Default)
+        - Customers with lower credit scores are more likely to both churn and default on loans compared to those with higher credit scores.
+        - Continue analyzing relationship between CreditScore and the target variables Exited (churn) and Status (loan default) to see how financial behaviors differ across various CreditScore bands
+        """)
+    
+        st.markdown("""
+        ### Second Hypothesis: Product Engagement as a Mitigator of Financial Risk
+        - Customers who engage with more bank products (NumOfProducts) are less likely to default on loans or churn, even if their credit score is lower.
+        - Higher engagement with financial products could indicate greater customer investment in their financial relationship with the bank, 
+        which may mitigate the likelihood of churn or default, even if the customer has a lower CreditScore
+        """)
 
     
     # Sidebar Filters
