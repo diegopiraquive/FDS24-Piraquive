@@ -183,7 +183,7 @@ with tab1:
 
 # Content for the second tab (Predictive Model)
 with tab2:
-    st.title("Exploratory Data Analysis (EDA)"
+    st.title("Exploratory Data Analysis (EDA)")
     # Sidebar navigation
     st.sidebar.title("Navigation for EDA")
     section = st.sidebar.selectbox("Select a section:", 
