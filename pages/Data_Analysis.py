@@ -264,7 +264,7 @@ with tab2:
     
         # Create a scatter plot
         fig, ax = plt.subplots(figsize=(8, 5))
-        sns.scatterplot(x=selected_df_1[column_choice_1], y=selected_df_2[column_choice_2], ax=ax, color="red")
+        sns.scatterplot(x=selected_df_1[column_choice_1], y=selected_df_2[column_choice_2], ax=ax)
         ax.set_title(f'Scatter Plot: {column_choice_1} vs {column_choice_2}')
     
         # Display the scatter plot in Streamlit
