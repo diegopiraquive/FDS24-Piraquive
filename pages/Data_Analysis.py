@@ -83,6 +83,10 @@ with tab1:
     st.write("Upfront charges missingness score: 0.825")
     st.write("Income missingness score: 0.938")
 
+    st.markdown("""
+    - High values in logistic regression suggest that the missingness in all three variables is strongly related to other independent variables, confirming MAR pattern.
+    """)
+
     # Encoding
     st.subheader("Encoding Categorical Variables")
     loan_data = loan_df.copy()
@@ -154,13 +158,17 @@ with tab1:
     ax[1].set_ylabel('Predicted Loan Amount')
     ax[1].set_title('Mean Imputation: Predicted vs Actual')
     st.pyplot(fig)
-
+    st.markdown("""
+    Partially achieved goal because MICE imputation successfully handled missing data. However, it did not lead to significant performance improvements over mean imputation. 
+    """)
+    
     # Descriptive Statistics
     st.subheader("Descriptive Statistics")
     st.write("Churn Dataset Statistics")
     st.write(churn_df.describe())
     st.write("Loan Dataset Statistics")
     st.write(loan_data.describe())
+    
 
     # Outlier Detection
     st.subheader("Outlier Detection")
