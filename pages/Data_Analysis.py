@@ -235,37 +235,32 @@ with tab2:
         st.title("Bivariate Analysis")
         st.subheader("Scatter Plots for Pairs of Variables")
 
-        # Define the numerical columns for both datasets
+        # Define the numerical columns for both datasets, ensuring 'CreditScore' is not duplicated
         numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
-        numerical_loan = ['Credit_Score', 'loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']
-        
-        # Combine the columns into one list for the dropdowns
-        all_numerical_columns = {
-            "Churn Data": numerical_churn,
-            "Loan Data": numerical_loan
-        }
-        
-        # Create the two dropdowns for selecting variables
-        dataset_choice_1 = st.selectbox("Select Dataset for X-axis Variable:", ["Churn Data", "Loan Data"])
-        column_choice_1 = st.selectbox("Select X-axis Variable:", all_numerical_columns[dataset_choice_1])
+        numerical_loan = ['loan_amount', 'rate_of_interest', 'Interest_rate_spread', 'Upfront_charges', 'income']
     
-        dataset_choice_2 = st.selectbox("Select Dataset for Y-axis Variable:", ["Churn Data", "Loan Data"])
-        column_choice_2 = st.selectbox("Select Y-axis Variable:", all_numerical_columns[dataset_choice_2])
+        # Combine the columns into one list, making sure 'CreditScore' is not duplicated
+        combined_numerical_columns = ['CreditScore'] + numerical_loan + ['NumOfProducts', 'Balance']
     
-        # Get the selected DataFrame for the chosen variables
-        if dataset_choice_1 == "Churn Data":
+        # Create the two dropdowns for selecting variables (both using the same combined list)
+        column_choice_1 = st.selectbox("Select X-axis Variable:", combined_numerical_columns)
+        column_choice_2 = st.selectbox("Select Y-axis Variable:", combined_numerical_columns)
+    
+        # Get the selected DataFrame for the chosen variables based on the combined list
+        # Determine if the selected variables belong to churn_df or loan_df
+        if column_choice_1 in numerical_churn:
             selected_df_1 = churn_df
         else:
             selected_df_1 = loan_df
     
-        if dataset_choice_2 == "Churn Data":
+        if column_choice_2 in numerical_churn:
             selected_df_2 = churn_df
         else:
             selected_df_2 = loan_df
     
         # Display the selected columns
-        st.write(f"Selected X-axis Variable: {column_choice_1} from {dataset_choice_1}")
-        st.write(f"Selected Y-axis Variable: {column_choice_2} from {dataset_choice_2}")
+        st.write(f"Selected X-axis Variable: {column_choice_1}")
+        st.write(f"Selected Y-axis Variable: {column_choice_2}")
     
         # Create a scatter plot
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -274,6 +269,7 @@ with tab2:
     
         # Display the scatter plot in Streamlit
         st.pyplot(fig)
+
 
     
     # Multivariate Analysis Section
