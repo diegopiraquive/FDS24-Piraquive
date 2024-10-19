@@ -30,5 +30,5 @@ st.markdown("""
 Develop a unified model to predict overall financial risk, combining both churn and loan default risks, using CreditScore and related financial behavior variables from both datasets.
 """)
 
-st.image(https://cdn.corporatefinanceinstitute.com/assets/tools-financial-risk-management-1.jpeg, caption="My Image from URL", use_column_width=True)
+st.image("https://cdn.corporatefinanceinstitute.com/assets/tools-financial-risk-management-1.jpeg", use_column_width=True)
     
