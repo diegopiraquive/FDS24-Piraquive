@@ -63,3 +63,5 @@ For questions or collaboration, reach out to:
 Diego Piraquive
 
 Email: piraquiv@msu.edu
+
+This readme was made with assistant from ChatGPT 4o on October 15, 2024. 
