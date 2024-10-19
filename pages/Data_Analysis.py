@@ -27,7 +27,6 @@ tab1, tab2 = st.tabs(["IDA", "EDA"])
 
 # Content for the first tab (Data Analysis)
 with tab1:
-
 # Sidebar navigation
 st.sidebar.title("Navigation")
 section = st.sidebar.selectbox("Select a section:", 
