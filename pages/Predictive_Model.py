@@ -72,13 +72,18 @@ with tab2:
     if st.button("Predict Loan Default"):
         # Use mean Upfront Charges to fill in the placeholder
         upfront_charge = data['Upfront_charges'].mean()
+        income_placeholder = 0  # Use a placeholder or ask the user for income if needed
 
         # Prepare input data
         input_data = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
-            'Upfront_charges': [upfront_charge]
+            'Upfront_charges': [upfront_charge],
+            'income': [income_placeholder]
         })
+
+        # Reorder columns to match training data
+        input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
 
         # Make prediction
         prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
