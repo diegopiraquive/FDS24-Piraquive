@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-
 # Load the merged dataset
 url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/churn_loan_merged.csv'
 data = pd.read_csv(url)
@@ -41,9 +40,18 @@ def calculate_upfront_charges(rate_of_interest, loan_amount):
         (X_train_loan['loan_amount'] <= loan_amount * 1.1)
     ]
 
+    # Debugging: Check filtered data
+    st.write("Filtered Data for Upfront Charge Calculation:")
+    st.write(filtered_data)
+
     if not filtered_data.empty:
         # Calculate weights based on rate_of_interest similarity
         filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
+
+        # Debugging: Check weights
+        st.write("Weights Applied for Rate of Interest:")
+        st.write(filtered_data[['rate_of_interest', 'weight']])
+
         weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
         return weighted_avg_upfront
 
@@ -73,6 +81,7 @@ with tab1:
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
+# Streamlit Loan Default Tab
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown("Input the following values to predict the likelihood of loan default:")
@@ -98,6 +107,10 @@ with tab2:
             'Upfront_charges': [upfront_charge],
             'income': [0]  # Placeholder for income
         })
+
+        # Debugging: Display input data
+        st.write("Input Data for Loan Default Prediction (Before Prediction):")
+        st.write(input_data)
 
         # Make prediction
         prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
