@@ -29,27 +29,27 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-# Improved function to derive upfront charges dynamically
 def calculate_upfront_charges(rate_of_interest, loan_amount):
     """
-    Calculates the upfront charges based on the relationship between
-    rate_of_interest, loan_amount, and upfront_charges in the training data.
+    Calculates upfront charges based on rate_of_interest and loan_amount.
+    Uses a weighted relationship derived from the training data.
     """
-    # Filter training data by loan amount range
+    # Filter training data for similar loan amounts
     filtered_data = X_train_loan[
         (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
         (X_train_loan['loan_amount'] <= loan_amount * 1.1)
     ]
 
     if not filtered_data.empty:
-        # Find the closest rate_of_interest in the filtered data
-        closest_row = filtered_data.iloc[
-            (filtered_data['rate_of_interest'] - rate_of_interest).abs().argsort()[:1]
-        ]
-        return closest_row['Upfront_charges'].values[0]
-    
-    # Fallback to mean upfront charges if no close match found
+        # Calculate average upfront charges weighted by the closeness of rate_of_interest
+        filtered_data['weight'] = 1 / (1 + (filtered_data['rate_of_interest'] - rate_of_interest).abs())
+        weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
+        return weighted_avg_upfront
+
+    # Fallback to mean upfront charges if no match found
     return X_train_loan['Upfront_charges'].mean()
+
+# Update the Streamlit app code with the new calculate_upfront_charges logic
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
