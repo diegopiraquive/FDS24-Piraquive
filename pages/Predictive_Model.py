@@ -29,9 +29,11 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-# Min and max values for rate of interest
-rate_min = data['rate_of_interest'].min() * 100
-rate_max = data['rate_of_interest'].max() * 100
+# Helper function to estimate Upfront Charges based on loan amount and rate of interest
+def estimate_upfront_charges(loan_amount, rate_of_interest):
+    # Use a regression model or statistical relationship to estimate upfront charges
+    # For simplicity, we derive upfront charges as a percentage of loan amount and rate_of_interest
+    return loan_amount * rate_of_interest * 0.5  # Adjust this formula as needed
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
@@ -56,7 +58,6 @@ with tab1:
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
-
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown(f"Input the following values to predict the likelihood of loan default:")
@@ -71,22 +72,18 @@ with tab2:
     rate_of_interest = rate_of_interest_percent / 100  # Convert percentage to decimal internally
 
     if st.button("Predict Loan Default"):
-        # Use mean Upfront Charges to fill in the placeholder
-        upfront_charge = data['Upfront_charges'].mean()
-        income_placeholder = 0  # Placeholder for income
+        # Estimate Upfront Charges dynamically
+        upfront_charge = estimate_upfront_charges(loan_amount, rate_of_interest)
 
         # Prepare input data
         input_data = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
             'Upfront_charges': [upfront_charge],
-            'income': [income_placeholder]
+            'income': [0]  # Default placeholder
         })
 
-        # Reorder columns to match training data
-        input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
-
-        # Debugging: Print input data
+        # Display the input data for debugging
         st.write("Input Data for Loan Default Prediction:")
         st.write(input_data)
 
