@@ -29,11 +29,10 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-# Improved function to calculate upfront charges dynamically
 def calculate_upfront_charges(rate_of_interest, loan_amount):
     """
-    Calculates upfront charges based on rate_of_interest and loan_amount.
-    Applies improved logic to reflect dynamic variation in inputs.
+    Calculates upfront charges dynamically based on rate_of_interest and loan_amount.
+    Utilizes weighted averages derived from training data to reflect variations.
     """
     # Filter training data for similar loan amounts
     filtered_data = X_train_loan[
@@ -73,6 +72,7 @@ with tab1:
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
+# Streamlit Loan Default Tab
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown("Input the following values to predict the likelihood of loan default:")
@@ -88,26 +88,6 @@ with tab2:
 
     if st.button("Predict Loan Default"):
         # Calculate upfront charges dynamically based on inputs
-        def calculate_upfront_charges(rate_of_interest, loan_amount):
-            """
-            Calculate upfront charges dynamically based on rate_of_interest and loan_amount.
-            Improved logic to better reflect variations in inputs.
-            """
-            # Filter training data for similar loan amounts
-            filtered_data = X_train_loan[
-                (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
-                (X_train_loan['loan_amount'] <= loan_amount * 1.1)
-            ]
-
-            if not filtered_data.empty:
-                # Calculate weights based on rate_of_interest similarity
-                filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
-                weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
-                return weighted_avg_upfront
-
-            # Fallback to mean upfront charges if no match found
-            return X_train_loan['Upfront_charges'].mean()
-
         upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
         st.write(f"Calculated Upfront Charges: {upfront_charge:.2f}")
 
