@@ -56,11 +56,6 @@ with tab1:
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
-# Load scaler used during training
-import joblib
-
-scaler = joblib.load('scaler.pkl')  # Ensure 'scaler.pkl' is in your Streamlit app directory or use a full path
-
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown(f"Input the following values to predict the likelihood of loan default:")
@@ -78,16 +73,11 @@ with tab2:
         # Use mean Upfront Charges to fill in the placeholder
         upfront_charge = data['Upfront_charges'].mean()
 
-        # Apply the same scaling as used during training
-        loan_amount_scaled = scaler.transform([[loan_amount]])[0][0]
-        rate_of_interest_scaled = scaler.transform([[rate_of_interest]])[0][0]
-        upfront_charge_scaled = scaler.transform([[upfront_charge]])[0][0]
-
         # Prepare input data
         input_data = pd.DataFrame({
-            'rate_of_interest': [rate_of_interest_scaled],
-            'loan_amount': [loan_amount_scaled],
-            'Upfront_charges': [upfront_charge_scaled]
+            'rate_of_interest': [rate_of_interest],
+            'loan_amount': [loan_amount],
+            'Upfront_charges': [upfront_charge]
         })
 
         # Make prediction
@@ -95,3 +85,4 @@ with tab2:
         st.write(f"Likelihood of loan default: {prediction:.2%}")
 
     st.write(f"Random Forest Model Accuracy: {loan_accuracy:.4f}")
+
