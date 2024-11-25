@@ -31,23 +31,32 @@ loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
 def calculate_upfront_charges(rate_of_interest, loan_amount):
     """
-    Dynamically calculates upfront charges based on rate_of_interest and loan_amount.
-    Uses the original dataset to find matching patterns.
+    Calculates upfront charges based on rate_of_interest and loan_amount.
+    Uses a weighted relationship derived from the training data.
     """
-    # Filter the original data for similar loan amounts
-    filtered_data = data[
-        (data['loan_amount'] >= loan_amount * 0.9) &
-        (data['loan_amount'] <= loan_amount * 1.1)
+    # Filter training data for similar loan amounts
+    filtered_data = X_train_loan[
+        (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
+        (X_train_loan['loan_amount'] <= loan_amount * 1.1)
     ]
 
     if not filtered_data.empty:
-        # Calculate weighted average upfront charges based on rate_of_interest
+        # Debugging: Print filtered data to verify the subset
+        st.write("Filtered Data for Upfront Charge Calculation:")
+        st.write(filtered_data)
+
+        # Calculate average upfront charges weighted by the closeness of rate_of_interest
         filtered_data['weight'] = 1 / (1 + (filtered_data['rate_of_interest'] - rate_of_interest).abs())
+        
+        # Debugging: Check weights and their effect
+        st.write("Weights applied for rate_of_interest:")
+        st.write(filtered_data[['rate_of_interest', 'weight']])
+        
         weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
         return weighted_avg_upfront
 
-    # Fallback to mean upfront charges from the original dataset
-    return data['Upfront_charges'].mean()
+    # Fallback to mean upfront charges if no match found
+    return X_train_loan['Upfront_charges'].mean()
 
 # Update the Streamlit app code with the new calculate_upfront_charges logic
 
