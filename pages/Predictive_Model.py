@@ -88,22 +88,22 @@ with tab2:
     rate_of_interest = rate_of_interest_percent / 100  # Convert percentage to decimal internally
 
     if st.button("Predict Loan Default"):
-        # Calculate upfront charges based on the relationship from training data
+        # Calculate upfront charges dynamically based on inputs
         upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
-        income_placeholder = 0  # Placeholder for income
+        st.write(f"Calculated Upfront Charges: {upfront_charge}")
 
         # Prepare input data
         input_data = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
             'Upfront_charges': [upfront_charge],
-            'income': [income_placeholder]
+            'income': [0]  # Placeholder for income
         })
 
-        # Reorder columns to match training data
+        # Ensure column order matches the training data
         input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
 
-        # Debugging: Print input data
+        # Display input data for verification
         st.write("Input Data for Loan Default Prediction:")
         st.write(input_data)
 
