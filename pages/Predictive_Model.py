@@ -29,17 +29,27 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-# Derive relationship between rate_of_interest, loan_amount, and upfront_charges
-# Use training data to calculate the average upfront charges based on loan amount and rate of interest
-grouped_data = X_train_loan.groupby(['rate_of_interest', 'loan_amount'])['Upfront_charges'].mean().reset_index()
-
+# Improved function to derive upfront charges dynamically
 def calculate_upfront_charges(rate_of_interest, loan_amount):
-    # Find closest match in grouped data for the input values
-    closest_match = grouped_data.iloc[
-        (grouped_data['rate_of_interest'] - rate_of_interest).abs().argsort()[:1]
+    """
+    Calculates the upfront charges based on the relationship between
+    rate_of_interest, loan_amount, and upfront_charges in the training data.
+    """
+    # Filter training data by loan amount range
+    filtered_data = X_train_loan[
+        (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
+        (X_train_loan['loan_amount'] <= loan_amount * 1.1)
     ]
-    # Use the calculated upfront charges or default to the mean of the training data
-    return closest_match['Upfront_charges'].values[0] if not closest_match.empty else data['Upfront_charges'].mean()
+
+    if not filtered_data.empty:
+        # Find the closest rate_of_interest in the filtered data
+        closest_row = filtered_data.iloc[
+            (filtered_data['rate_of_interest'] - rate_of_interest).abs().argsort()[:1]
+        ]
+        return closest_row['Upfront_charges'].values[0]
+    
+    # Fallback to mean upfront charges if no close match found
+    return X_train_loan['Upfront_charges'].mean()
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
@@ -63,7 +73,6 @@ with tab1:
         prediction = rf_churn.predict_proba(input_data)[0][1]  # Probability of churn
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
-
 
 with tab2:
     st.markdown("### Loan Default Prediction")
