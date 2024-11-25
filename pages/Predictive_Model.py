@@ -89,6 +89,26 @@ with tab2:
 
     if st.button("Predict Loan Default"):
         # Calculate upfront charges dynamically based on inputs
+        def calculate_upfront_charges(rate_of_interest, loan_amount):
+            """
+            Calculate upfront charges dynamically based on rate_of_interest and loan_amount.
+            Improved logic to better reflect variations in inputs.
+            """
+            # Filter training data for similar loan amounts
+            filtered_data = X_train_loan[
+                (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
+                (X_train_loan['loan_amount'] <= loan_amount * 1.1)
+            ]
+
+            if not filtered_data.empty:
+                # Calculate weights based on rate_of_interest similarity
+                filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
+                weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
+                return weighted_avg_upfront
+
+            # Fallback to mean upfront charges if no match found
+            return X_train_loan['Upfront_charges'].mean()
+
         upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
         st.write(f"Calculated Upfront Charges: {upfront_charge}")
 
@@ -103,7 +123,7 @@ with tab2:
         # Ensure column order matches the training data
         input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
 
-        # Display input data for verification
+        # Debugging: Display input data
         st.write("Input Data for Loan Default Prediction:")
         st.write(input_data)
 
