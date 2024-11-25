@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-
 # Load the merged dataset
 url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/churn_loan_merged.csv'
 data = pd.read_csv(url)
@@ -30,24 +29,17 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-def calculate_upfront_charges(rate_of_interest, loan_amount, X_train_loan):
-    """
-    Calculates upfront charges dynamically based on rate_of_interest and loan_amount.
-    Utilizes weighted averages derived from training data to reflect variations.
-    """
-    # Filter training data for similar loan amounts
+# Function to dynamically calculate upfront charges
+def calculate_upfront_charges(rate_of_interest, loan_amount):
     filtered_data = X_train_loan[
         (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
         (X_train_loan['loan_amount'] <= loan_amount * 1.1)
     ]
 
     if not filtered_data.empty:
-        # Calculate weights based on rate_of_interest similarity
         filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
         weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
         return weighted_avg_upfront
-
-    # Fallback to mean upfront charges if no match found
     return X_train_loan['Upfront_charges'].mean()
 
 # Streamlit app
@@ -61,51 +53,41 @@ with tab1:
     credit_score = st.number_input("Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01)
     balance = st.number_input("Balance", min_value=0.0, step=100.0)
     if st.button("Predict Churn"):
-        # Align input data with training columns
         input_data = pd.DataFrame({
             'CreditScore_Normalized': [credit_score],
-            'NumOfProducts': [0],  # Default placeholder
-            'HasCrCard': [0],      # Default placeholder
+            'NumOfProducts': [0],  
+            'HasCrCard': [0],      
             'Balance': [balance]
         })
-        # Make prediction
-        prediction = rf_churn.predict_proba(input_data)[0][1]  # Probability of churn
+        prediction = rf_churn.predict_proba(input_data)[0][1]  
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
-# Streamlit Loan Default Tab
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown("Input the following values to predict the likelihood of loan default:")
 
-    # Input Loan Amount
     loan_amount = st.number_input("Loan Amount", min_value=0.0, step=100.0)
-
-    # Input Rate of Interest as percentage
     rate_of_interest_percent = st.number_input(
         "Rate of Interest (%)", min_value=0.0, max_value=100.0, step=0.1, value=0.0
     )
-    rate_of_interest = rate_of_interest_percent / 100  # Convert percentage to decimal internally
+    rate_of_interest = rate_of_interest_percent / 100  
 
     if st.button("Predict Loan Default"):
-        # Calculate upfront charges dynamically based on inputs
-        upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount, X_train_loan)
+        upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
         st.write(f"Calculated Upfront Charges: {upfront_charge:.2f}")
 
-        # Prepare input data
         input_data = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
             'Upfront_charges': [upfront_charge],
-            'income': [0]  # Placeholder for income
+            'income': [0]  
         })
 
-        # Debugging: Display input data
         st.write("Input Data for Loan Default Prediction (Before Prediction):")
         st.write(input_data)
 
-        # Make prediction
-        prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
+        prediction = rf_loan.predict_proba(input_data)[0][1]  
         st.write(f"Likelihood of loan default: {prediction:.2%}")
 
     st.write(f"Random Forest Model Accuracy: {loan_accuracy:.4f}")
