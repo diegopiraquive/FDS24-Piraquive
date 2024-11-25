@@ -44,13 +44,14 @@ with tab1:
     credit_score = st.number_input("Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01)
     balance = st.number_input("Balance", min_value=0.0, step=100.0)
     if st.button("Predict Churn"):
-        # Align feature names
+        # Align input data with training columns
         input_data = pd.DataFrame({
             'CreditScore_Normalized': [credit_score],
-            'Balance': [balance],
             'NumOfProducts': [0],  # Default placeholder
-            'HasCrCard': [0]       # Default placeholder
+            'HasCrCard': [0],      # Default placeholder
+            'Balance': [balance]
         })
+        # Make prediction
         prediction = rf_churn.predict_proba(input_data)[0][1]  # Probability of churn
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
@@ -72,6 +73,7 @@ with tab2:
             'Upfront_charges': [upfront_charge],  # Using mean
             'income': [0]                        # Default placeholder
         })
+        # Make prediction
         prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
         st.write(f"Likelihood of loan default: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {loan_accuracy:.4f}")
