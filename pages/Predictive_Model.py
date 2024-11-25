@@ -1,10 +1,9 @@
-
 import pandas as pd
 import numpy as np
 import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 
 # Load the merged dataset
 url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/churn_loan_merged.csv'
@@ -45,8 +44,13 @@ with tab1:
     credit_score = st.number_input("Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01)
     balance = st.number_input("Balance", min_value=0.0, step=100.0)
     if st.button("Predict Churn"):
-        input_data = pd.DataFrame({'CreditScore_Normalized': [credit_score], 'Balance': [balance],
-                                   'NumOfProducts': [0], 'HasCrCard': [0]})  # Defaulting other features
+        # Align feature names
+        input_data = pd.DataFrame({
+            'CreditScore_Normalized': [credit_score],
+            'Balance': [balance],
+            'NumOfProducts': [0],  # Default placeholder
+            'HasCrCard': [0]       # Default placeholder
+        })
         prediction = rf_churn.predict_proba(input_data)[0][1]  # Probability of churn
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
@@ -60,9 +64,14 @@ with tab2:
         min_value=rate_min, max_value=rate_max, step=0.1
     ) / 100  # Convert percentage to decimal
     if st.button("Predict Loan Default"):
-        upfront_charge = data['Upfront_charges'].mean()  # Using average for missing upfront charges
-        input_data = pd.DataFrame({'rate_of_interest': [rate_of_interest], 'loan_amount': [loan_amount],
-                                   'Upfront_charges': [upfront_charge], 'income': [0]})  # Defaulting other features
+        # Use mean Upfront Charges to fill in the placeholder
+        upfront_charge = data['Upfront_charges'].mean()
+        input_data = pd.DataFrame({
+            'rate_of_interest': [rate_of_interest],
+            'loan_amount': [loan_amount],
+            'Upfront_charges': [upfront_charge],  # Using mean
+            'income': [0]                        # Default placeholder
+        })
         prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
         st.write(f"Likelihood of loan default: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {loan_accuracy:.4f}")
