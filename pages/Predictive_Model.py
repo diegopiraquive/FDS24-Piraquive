@@ -29,11 +29,17 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-# Helper function to estimate Upfront Charges based on loan amount and rate of interest
-def estimate_upfront_charges(loan_amount, rate_of_interest):
-    # Use a regression model or statistical relationship to estimate upfront charges
-    # For simplicity, we derive upfront charges as a percentage of loan amount and rate_of_interest
-    return loan_amount * rate_of_interest * 0.5  # Adjust this formula as needed
+# Derive relationship between rate_of_interest, loan_amount, and upfront_charges
+# Use training data to calculate the average upfront charges based on loan amount and rate of interest
+grouped_data = X_train_loan.groupby(['rate_of_interest', 'loan_amount'])['Upfront_charges'].mean().reset_index()
+
+def calculate_upfront_charges(rate_of_interest, loan_amount):
+    # Find closest match in grouped data for the input values
+    closest_match = grouped_data.iloc[
+        (grouped_data['rate_of_interest'] - rate_of_interest).abs().argsort()[:1]
+    ]
+    # Use the calculated upfront charges or default to the mean of the training data
+    return closest_match['Upfront_charges'].values[0] if not closest_match.empty else data['Upfront_charges'].mean()
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
@@ -58,9 +64,10 @@ with tab1:
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
+
 with tab2:
     st.markdown("### Loan Default Prediction")
-    st.markdown(f"Input the following values to predict the likelihood of loan default:")
+    st.markdown("Input the following values to predict the likelihood of loan default:")
 
     # Input Loan Amount
     loan_amount = st.number_input("Loan Amount", min_value=0.0, step=100.0)
@@ -72,18 +79,22 @@ with tab2:
     rate_of_interest = rate_of_interest_percent / 100  # Convert percentage to decimal internally
 
     if st.button("Predict Loan Default"):
-        # Estimate Upfront Charges dynamically
-        upfront_charge = estimate_upfront_charges(loan_amount, rate_of_interest)
+        # Calculate upfront charges based on the relationship from training data
+        upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
+        income_placeholder = 0  # Placeholder for income
 
         # Prepare input data
         input_data = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
             'Upfront_charges': [upfront_charge],
-            'income': [0]  # Default placeholder
+            'income': [income_placeholder]
         })
 
-        # Display the input data for debugging
+        # Reorder columns to match training data
+        input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
+
+        # Debugging: Print input data
         st.write("Input Data for Loan Default Prediction:")
         st.write(input_data)
 
