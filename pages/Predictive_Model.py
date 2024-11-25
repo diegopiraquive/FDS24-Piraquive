@@ -59,24 +59,34 @@ with tab1:
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown(f"Input the following values to predict the likelihood of loan default:")
+
+    # Input Loan Amount
     loan_amount = st.number_input("Loan Amount", min_value=0.0, step=100.0)
-    
-    # Adjust rate_of_interest input to show percentage
-    rate_of_interest = st.number_input(
-        "Rate of Interest (%)",
-        min_value=0.0, max_value=100.0, step=0.1, value=0.0
-    ) / 100  # Convert percentage to decimal internally
-    
+
+    # Input Rate of Interest as percentage
+    rate_of_interest_percent = st.number_input(
+        "Rate of Interest (%)", min_value=0.0, max_value=100.0, step=0.1, value=0.0
+    )
+    rate_of_interest = rate_of_interest_percent / 100  # Convert percentage to decimal internally
+
     if st.button("Predict Loan Default"):
         # Use mean Upfront Charges to fill in the placeholder
         upfront_charge = data['Upfront_charges'].mean()
+
+        # Apply same scaling as used during training
+        loan_amount_scaled = scaler.transform([[loan_amount]])[0][0]
+        rate_of_interest_scaled = scaler.transform([[rate_of_interest]])[0][0]
+        upfront_charge_scaled = scaler.transform([[upfront_charge]])[0][0]
+
+        # Prepare input data
         input_data = pd.DataFrame({
-            'rate_of_interest': [rate_of_interest],
-            'loan_amount': [loan_amount],
-            'Upfront_charges': [upfront_charge],  # Using mean
-            'income': [0]                        # Default placeholder
+            'rate_of_interest': [rate_of_interest_scaled],
+            'loan_amount': [loan_amount_scaled],
+            'Upfront_charges': [upfront_charge_scaled]
         })
+
         # Make prediction
         prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
         st.write(f"Likelihood of loan default: {prediction:.2%}")
+
     st.write(f"Random Forest Model Accuracy: {loan_accuracy:.4f}")
