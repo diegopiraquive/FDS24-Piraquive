@@ -60,10 +60,13 @@ with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown(f"Input the following values to predict the likelihood of loan default:")
     loan_amount = st.number_input("Loan Amount", min_value=0.0, step=100.0)
+    
+    # Adjust rate_of_interest input to show percentage
     rate_of_interest = st.number_input(
-        f"Rate of Interest (% Range: {rate_min:.1f}-{rate_max:.1f})",
-        min_value=rate_min, max_value=rate_max, step=0.1
-    ) / 100  # Convert percentage to decimal
+        "Rate of Interest (%)",
+        min_value=0.0, max_value=100.0, step=0.1, value=0.0
+    ) / 100  # Convert percentage to decimal internally
+    
     if st.button("Predict Loan Default"):
         # Use mean Upfront Charges to fill in the placeholder
         upfront_charge = data['Upfront_charges'].mean()
