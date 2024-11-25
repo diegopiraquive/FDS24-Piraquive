@@ -29,10 +29,11 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=100)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
+# Improved function to calculate upfront charges dynamically
 def calculate_upfront_charges(rate_of_interest, loan_amount):
     """
     Calculates upfront charges based on rate_of_interest and loan_amount.
-    Uses a weighted relationship derived from the training data.
+    Applies improved logic to reflect dynamic variation in inputs.
     """
     # Filter training data for similar loan amounts
     filtered_data = X_train_loan[
@@ -41,24 +42,13 @@ def calculate_upfront_charges(rate_of_interest, loan_amount):
     ]
 
     if not filtered_data.empty:
-        # Debugging: Print filtered data to verify the subset
-        st.write("Filtered Data for Upfront Charge Calculation:")
-        st.write(filtered_data)
-
-        # Calculate average upfront charges weighted by the closeness of rate_of_interest
-        filtered_data['weight'] = 1 / (1 + (filtered_data['rate_of_interest'] - rate_of_interest).abs())
-        
-        # Debugging: Check weights and their effect
-        st.write("Weights applied for rate_of_interest:")
-        st.write(filtered_data[['rate_of_interest', 'weight']])
-        
+        # Calculate weights based on rate_of_interest similarity
+        filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
         weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
         return weighted_avg_upfront
 
     # Fallback to mean upfront charges if no match found
     return X_train_loan['Upfront_charges'].mean()
-
-# Update the Streamlit app code with the new calculate_upfront_charges logic
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
@@ -98,28 +88,8 @@ with tab2:
 
     if st.button("Predict Loan Default"):
         # Calculate upfront charges dynamically based on inputs
-        def calculate_upfront_charges(rate_of_interest, loan_amount):
-            """
-            Calculate upfront charges dynamically based on rate_of_interest and loan_amount.
-            Improved logic to better reflect variations in inputs.
-            """
-            # Filter training data for similar loan amounts
-            filtered_data = X_train_loan[
-                (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
-                (X_train_loan['loan_amount'] <= loan_amount * 1.1)
-            ]
-
-            if not filtered_data.empty:
-                # Calculate weights based on rate_of_interest similarity
-                filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
-                weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
-                return weighted_avg_upfront
-
-            # Fallback to mean upfront charges if no match found
-            return X_train_loan['Upfront_charges'].mean()
-
         upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
-        st.write(f"Calculated Upfront Charges: {upfront_charge}")
+        st.write(f"Calculated Upfront Charges: {upfront_charge:.2f}")
 
         # Prepare input data
         input_data = pd.DataFrame({
@@ -132,7 +102,7 @@ with tab2:
         # Ensure column order matches the training data
         input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
 
-        # Debugging: Display input data
+        # Display input data
         st.write("Input Data for Loan Default Prediction:")
         st.write(input_data)
 
