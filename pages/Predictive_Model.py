@@ -56,6 +56,7 @@ with tab1:
         st.write(f"Likelihood of churn: {prediction:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
+
 with tab2:
     st.markdown("### Loan Default Prediction")
     st.markdown(f"Input the following values to predict the likelihood of loan default:")
@@ -72,7 +73,7 @@ with tab2:
     if st.button("Predict Loan Default"):
         # Use mean Upfront Charges to fill in the placeholder
         upfront_charge = data['Upfront_charges'].mean()
-        income_placeholder = 0  # Use a placeholder or ask the user for income if needed
+        income_placeholder = 0  # Placeholder for income
 
         # Prepare input data
         input_data = pd.DataFrame({
@@ -85,9 +86,12 @@ with tab2:
         # Reorder columns to match training data
         input_data = input_data[['rate_of_interest', 'loan_amount', 'Upfront_charges', 'income']]
 
+        # Debugging: Print input data
+        st.write("Input Data for Loan Default Prediction:")
+        st.write(input_data)
+
         # Make prediction
         prediction = rf_loan.predict_proba(input_data)[0][1]  # Probability of loan default
         st.write(f"Likelihood of loan default: {prediction:.2%}")
 
     st.write(f"Random Forest Model Accuracy: {loan_accuracy:.4f}")
-
