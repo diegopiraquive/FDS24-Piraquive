@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-
 # Load the merged dataset
 url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/churn_loan_merged.csv'
 data = pd.read_csv(url)
@@ -36,18 +35,12 @@ def calculate_upfront_charges(rate_of_interest, loan_amount):
     Calculate upfront charges based on rate_of_interest and loan_amount.
     Uses a fallback mean value if no matching data is found.
     """
-    # Ensure X_train_loan is available and contains the necessary columns
-    required_columns = {'rate_of_interest', 'loan_amount', 'Upfront_charges'}
-    if not required_columns.issubset(X_train_loan.columns):
-        raise ValueError(f"X_train_loan is missing one or more required columns: {required_columns}")
-
     # Filter training data for similar loan amounts
     filtered_data = X_train_loan[
-        (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
-        (X_train_loan['loan_amount'] <= loan_amount * 1.1)
+        (X_train_loan['loan_amount'] >= loan_amount * 0.8) &  # Expanded range for robustness
+        (X_train_loan['loan_amount'] <= loan_amount * 1.2)
     ]
 
-    # If filtered data is empty, fall back to mean upfront charges
     if filtered_data.empty:
         st.warning("No matching loan amounts found in the training data. Using mean upfront charges.")
         return X_train_loan['Upfront_charges'].mean()
@@ -81,16 +74,20 @@ with tab1:
     )
 
     if st.button("Predict Churn"):
+        # Prepare input data for Churn Prediction
         input_data_churn = pd.DataFrame({
             'CreditScore_Normalized': [credit_score_churn],
             'NumOfProducts': [num_of_products_churn],
             'HasCrCard': [has_cr_card_churn],
             'Balance': [balance_churn],
         })
+
+        # Predict Churn
         prediction_churn = rf_churn.predict_proba(input_data_churn)[0][1]
         st.write(f"Likelihood of churn: {prediction_churn:.2%}")
     st.write(f"Random Forest Model Accuracy (Churn): {churn_accuracy:.4f}")
 
+# Loan Default Prediction Tab
 with tab2:
     st.markdown("### Loan Default Prediction")
     loan_amount = st.number_input(
@@ -108,15 +105,23 @@ with tab2:
     )
 
     if st.button("Predict Loan Default"):
+        # Calculate Upfront Charges
         upfront_charge = calculate_upfront_charges(rate_of_interest, loan_amount)
         st.write(f"Calculated Upfront Charges: {upfront_charge:.2f}")
 
+        # Prepare input data for Loan Default Prediction
         input_data_loan = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
             'Upfront_charges': [upfront_charge],
             'income': [income],
+            'CreditScore_Normalized': [credit_score_loan]
         })
+
+        # Align columns with training data
+        input_data_loan = input_data_loan[X_train_loan.columns]
+
+        # Predict Loan Default
         prediction_loan = rf_loan.predict_proba(input_data_loan)[0][1]
         st.write(f"Likelihood of loan default: {prediction_loan:.2%}")
     st.write(f"Random Forest Model Accuracy (Loan): {loan_accuracy:.4f}")
