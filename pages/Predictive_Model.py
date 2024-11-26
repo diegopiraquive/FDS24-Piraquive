@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_squared_error, r2_score
 
+
 # Load datasets
 churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/churn_loan_merged.csv'
 loan_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/loan_data.csv'
