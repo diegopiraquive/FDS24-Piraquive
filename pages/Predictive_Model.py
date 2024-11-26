@@ -31,22 +31,33 @@ rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
 # Function to calculate upfront charges
-def calculate_upfront_charges(loan_amount):
+def calculate_upfront_charges(rate_of_interest, loan_amount):
     """
-    Dynamically calculates upfront charges based on the input `loan_amount`.
-    Uses an average or weighted average of similar data in training.
+    Calculate upfront charges based on rate_of_interest and loan_amount.
+    Uses a fallback mean value if no matching data is found.
     """
+    # Ensure X_train_loan is available and contains the necessary columns
+    required_columns = {'rate_of_interest', 'loan_amount', 'Upfront_charges'}
+    if not required_columns.issubset(X_train_loan.columns):
+        raise ValueError(f"X_train_loan is missing one or more required columns: {required_columns}")
+
+    # Filter training data for similar loan amounts
     filtered_data = X_train_loan[
         (X_train_loan['loan_amount'] >= loan_amount * 0.9) &
         (X_train_loan['loan_amount'] <= loan_amount * 1.1)
     ]
 
-    if not filtered_data.empty:
-        # Return the mean upfront charge for the similar loan amounts
-        return filtered_data['Upfront_charges'].mean()
+    # If filtered data is empty, fall back to mean upfront charges
+    if filtered_data.empty:
+        st.warning("No matching loan amounts found in the training data. Using mean upfront charges.")
+        return X_train_loan['Upfront_charges'].mean()
 
-    # If no similar data is found, return a general average
-    return X_train_loan['Upfront_charges'].mean()
+    # Calculate weights based on the similarity of rate_of_interest
+    filtered_data = filtered_data.copy()  # Avoid SettingWithCopyWarning
+    filtered_data['weight'] = 1 / (1 + np.abs(filtered_data['rate_of_interest'] - rate_of_interest))
+    weighted_avg_upfront = (filtered_data['Upfront_charges'] * filtered_data['weight']).sum() / filtered_data['weight'].sum()
+
+    return weighted_avg_upfront
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
