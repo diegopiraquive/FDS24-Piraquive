@@ -15,7 +15,7 @@ y_churn = data['Exited']
 X_train_churn, X_test_churn, y_train_churn, y_test_churn = train_test_split(
     X_churn, y_churn, test_size=0.2, random_state=42
 )
-rf_churn = RandomForestClassifier(random_state=42, n_estimators=50, max_depth=5)
+rf_churn = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=None)
 rf_churn.fit(X_train_churn, y_train_churn)
 churn_accuracy = accuracy_score(y_test_churn, rf_churn.predict(X_test_churn))
 
@@ -25,7 +25,7 @@ y_loan = data['Status']
 X_train_loan, X_test_loan, y_train_loan, y_test_loan = train_test_split(
     X_loan, y_loan, test_size=0.2, random_state=42
 )
-rf_loan = RandomForestClassifier(random_state=42, n_estimators=50, max_depth=5)
+rf_loan = RandomForestClassifier(random_state=42, n_estimators=100, max_depth=None)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
@@ -35,12 +35,15 @@ y_upfront = data['Upfront_charges']
 X_train_upfront, X_test_upfront, y_train_upfront, y_test_upfront = train_test_split(
     X_upfront, y_upfront, test_size=0.2, random_state=42
 )
-rf_upfront = RandomForestRegressor(random_state=42, n_estimators=100)
+rf_upfront = RandomForestRegressor(random_state=42, n_estimators=100, max_depth=None)
 rf_upfront.fit(X_train_upfront, y_train_upfront)
-upfront_r2 = r2_score(y_test_upfront, rf_upfront.predict(X_test_upfront))
-upfront_mse = mean_squared_error(y_test_upfront, rf_upfront.predict(X_test_upfront))
 
-# Streamlit app
+# Evaluate Upfront Charges Model
+y_pred_upfront = rf_upfront.predict(X_test_upfront)
+r2_upfront = r2_score(y_test_upfront, y_pred_upfront)
+mse_upfront = mean_squared_error(y_test_upfront, y_pred_upfront)
+
+# Streamlit App
 st.title("Financial Risk Prediction App")
 
 tab1, tab2 = st.tabs(["Churn Prediction", "Loan Default Prediction"])
@@ -84,30 +87,24 @@ with tab2:
     )
 
     if st.button("Predict Loan Default"):
-        # Predict Upfront Charges
-        input_data_upfront = pd.DataFrame({
+        # Predict Upfront Charges using the RF model
+        upfront_charge = rf_upfront.predict(pd.DataFrame({
             'loan_amount': [loan_amount],
             'rate_of_interest': [rate_of_interest],
             'income': [income],
-            'CreditScore_Normalized': [credit_score_loan]
-        })
-        upfront_charge = rf_upfront.predict(input_data_upfront)[0]
+            'CreditScore_Normalized': [credit_score_loan],
+        }))[0]
         st.write(f"Predicted Upfront Charges: {upfront_charge:.2f}")
 
-        # Use predicted Upfront Charges for Loan Default Prediction
+        # Predict Loan Default using the RF model
         input_data_loan = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
-            'Upfront_charges': [upfront_charge],
             'income': [income],
+            'Upfront_charges': [upfront_charge],
             'CreditScore_Normalized': [credit_score_loan],
         })
-        
-        # Ensure column names match training data
-        input_data_loan = input_data_loan[X_train_loan.columns]
-
         prediction_loan = rf_loan.predict_proba(input_data_loan)[0][1]
         st.write(f"Likelihood of loan default: {prediction_loan:.2%}")
     st.write(f"Random Forest Model Accuracy (Loan): {loan_accuracy:.4f}")
-    st.write(f"Random Forest R² for Upfront Charges: {upfront_r2:.4f}")
-    st.write(f"Random Forest MSE for Upfront Charges: {upfront_mse:.2f}")
+    st.write(f"Upfront Charges Model R²: {r2_upfront:.4f}, MSE: {mse_upfront:.2f}")
