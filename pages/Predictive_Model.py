@@ -31,41 +31,36 @@ loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
 # Function to calculate upfront charges using weighted KNN
 # Function to calculate upfront charges with weighted KNN
+# Normalize training data
+scaler = MinMaxScaler()
+X_train_scaled = scaler.fit_transform(
+    X_train_loan[['rate_of_interest', 'loan_amount', 'income']]
+)
+
 def calculate_upfront_charges_knn(rate_of_interest, loan_amount, income):
     """
-    Calculate upfront charges using a weighted KNN approach.
+    Calculate upfront charges using a weighted KNN approach with scaling.
     """
-    # Ensure training data is available
-    if X_train_loan.empty:
-        st.error("Training data is unavailable.")
-        return None
-
-    # Calculate distances based on rate_of_interest, loan_amount, and income
+    # Scale the input values using the same scaler
+    scaled_input = scaler.transform([[rate_of_interest, loan_amount, income]])
+    
+    # Calculate distances in the scaled space
     distances = np.sqrt(
-        (X_train_loan['rate_of_interest'] - rate_of_interest) ** 2 +
-        (X_train_loan['loan_amount'] - loan_amount) ** 2 +
-        (X_train_loan['income'] - income) ** 2
+        ((X_train_scaled[:, 0] - scaled_input[0][0]) ** 2) +
+        ((X_train_scaled[:, 1] - scaled_input[0][1]) ** 2) +
+        ((X_train_scaled[:, 2] - scaled_input[0][2]) ** 2)
     )
 
-    # Log distances for debugging
-    print(f"Distances: {distances.head()}")
-
-    # Add a small constant to avoid division by zero
+    # Avoid division by zero
     distances += 1e-6
 
     # Compute weights (inverse of distances)
     weights = 1 / distances
 
-    # Log weights for debugging
-    print(f"Weights: {weights.head()}")
-
-    # Weighted average calculation for upfront charges
+    # Calculate the weighted upfront charges
     weighted_upfront_charges = (
         (weights * X_train_loan['Upfront_charges']).sum() / weights.sum()
     )
-
-    # Log weighted result for debugging
-    print(f"Weighted Upfront Charges: {weighted_upfront_charges}")
 
     return weighted_upfront_charges
 
