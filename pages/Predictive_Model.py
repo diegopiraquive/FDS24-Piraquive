@@ -47,16 +47,25 @@ def calculate_upfront_charges_knn(rate_of_interest, loan_amount, income):
         (X_train_loan['income'] - income) ** 2
     )
 
+    # Log distances for debugging
+    print(f"Distances: {distances.head()}")
+
     # Add a small constant to avoid division by zero
-    distances = distances + 1e-6
+    distances += 1e-6
 
     # Compute weights (inverse of distances)
     weights = 1 / distances
+
+    # Log weights for debugging
+    print(f"Weights: {weights.head()}")
 
     # Weighted average calculation for upfront charges
     weighted_upfront_charges = (
         (weights * X_train_loan['Upfront_charges']).sum() / weights.sum()
     )
+
+    # Log weighted result for debugging
+    print(f"Weighted Upfront Charges: {weighted_upfront_charges}")
 
     return weighted_upfront_charges
 
