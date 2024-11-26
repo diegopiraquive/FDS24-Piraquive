@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, r2_score, mean_squared_error
 
 # Load the merged dataset
 url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/churn_loan_merged.csv'
@@ -20,7 +20,7 @@ rf_churn.fit(X_train_churn, y_train_churn)
 churn_accuracy = accuracy_score(y_test_churn, rf_churn.predict(X_test_churn))
 
 # Loan Default Prediction Preprocessing
-X_loan = data[['rate_of_interest', 'loan_amount', 'income', 'Upfront_charges']]
+X_loan = data[['rate_of_interest', 'loan_amount', 'income', 'Upfront_charges', 'CreditScore_Normalized']]
 y_loan = data['Status']
 X_train_loan, X_test_loan, y_train_loan, y_test_loan = train_test_split(
     X_loan, y_loan, test_size=0.2, random_state=42
@@ -29,40 +29,16 @@ rf_loan = RandomForestClassifier(random_state=42, n_estimators=50, max_depth=5)
 rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
-# Function to calculate upfront charges using weighted KNN
-# Function to calculate upfront charges with weighted KNN
-# Normalize training data
-scaler = MinMaxScaler()
-X_train_scaled = scaler.fit_transform(
-    X_train_loan[['rate_of_interest', 'loan_amount', 'income']]
+# Upfront Charges Prediction Preprocessing
+X_upfront = data[['loan_amount', 'rate_of_interest', 'income', 'CreditScore_Normalized']]
+y_upfront = data['Upfront_charges']
+X_train_upfront, X_test_upfront, y_train_upfront, y_test_upfront = train_test_split(
+    X_upfront, y_upfront, test_size=0.2, random_state=42
 )
-
-def calculate_upfront_charges_knn(rate_of_interest, loan_amount, income):
-    """
-    Calculate upfront charges using a weighted KNN approach with scaling.
-    """
-    # Scale the input values using the same scaler
-    scaled_input = scaler.transform([[rate_of_interest, loan_amount, income]])
-    
-    # Calculate distances in the scaled space
-    distances = np.sqrt(
-        ((X_train_scaled[:, 0] - scaled_input[0][0]) ** 2) +
-        ((X_train_scaled[:, 1] - scaled_input[0][1]) ** 2) +
-        ((X_train_scaled[:, 2] - scaled_input[0][2]) ** 2)
-    )
-
-    # Avoid division by zero
-    distances += 1e-6
-
-    # Compute weights (inverse of distances)
-    weights = 1 / distances
-
-    # Calculate the weighted upfront charges
-    weighted_upfront_charges = (
-        (weights * X_train_loan['Upfront_charges']).sum() / weights.sum()
-    )
-
-    return weighted_upfront_charges
+rf_upfront = RandomForestRegressor(random_state=42, n_estimators=100)
+rf_upfront.fit(X_train_upfront, y_train_upfront)
+upfront_r2 = r2_score(y_test_upfront, rf_upfront.predict(X_test_upfront))
+upfront_mse = mean_squared_error(y_test_upfront, rf_upfront.predict(X_test_upfront))
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
@@ -108,9 +84,17 @@ with tab2:
     )
 
     if st.button("Predict Loan Default"):
-        upfront_charge = calculate_upfront_charges_knn(rate_of_interest, loan_amount, income)
-        st.write(f"Calculated Upfront Charges: {upfront_charge:.2f}")
+        # Predict Upfront Charges
+        input_data_upfront = pd.DataFrame({
+            'loan_amount': [loan_amount],
+            'rate_of_interest': [rate_of_interest],
+            'income': [income],
+            'CreditScore_Normalized': [credit_score_loan]
+        })
+        upfront_charge = rf_upfront.predict(input_data_upfront)[0]
+        st.write(f"Predicted Upfront Charges: {upfront_charge:.2f}")
 
+        # Use predicted Upfront Charges for Loan Default Prediction
         input_data_loan = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
@@ -125,3 +109,5 @@ with tab2:
         prediction_loan = rf_loan.predict_proba(input_data_loan)[0][1]
         st.write(f"Likelihood of loan default: {prediction_loan:.2%}")
     st.write(f"Random Forest Model Accuracy (Loan): {loan_accuracy:.4f}")
+    st.write(f"Random Forest R² for Upfront Charges: {upfront_r2:.4f}")
+    st.write(f"Random Forest MSE for Upfront Charges: {upfront_mse:.2f}")
