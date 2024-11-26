@@ -30,20 +30,35 @@ rf_loan.fit(X_train_loan, y_train_loan)
 loan_accuracy = accuracy_score(y_test_loan, rf_loan.predict(X_test_loan))
 
 # Function to calculate upfront charges using weighted KNN
+# Function to calculate upfront charges with weighted KNN
 def calculate_upfront_charges_knn(rate_of_interest, loan_amount, income):
-    train_data = X_train_loan[['rate_of_interest', 'loan_amount', 'income', 'Upfront_charges']].copy()
-    train_data['distance'] = np.sqrt(
-        (train_data['rate_of_interest'] - rate_of_interest) ** 2 +
-        (train_data['loan_amount'] - loan_amount) ** 2 +
-        (train_data['income'] - income) ** 2
+    """
+    Calculate upfront charges using a weighted KNN approach.
+    """
+    # Ensure training data is available
+    if X_train_loan.empty:
+        st.error("Training data is unavailable.")
+        return None
+
+    # Calculate distances based on rate_of_interest, loan_amount, and income
+    distances = np.sqrt(
+        (X_train_loan['rate_of_interest'] - rate_of_interest) ** 2 +
+        (X_train_loan['loan_amount'] - loan_amount) ** 2 +
+        (X_train_loan['income'] - income) ** 2
     )
-    if train_data['distance'].sum() == 0:
-        return train_data['Upfront_charges'].mean()
-    train_data['weight'] = 1 / (1 + train_data['distance'])
-    weighted_avg_upfront = (
-        (train_data['Upfront_charges'] * train_data['weight']).sum() / train_data['weight'].sum()
+
+    # Add a small constant to avoid division by zero
+    distances = distances + 1e-6
+
+    # Compute weights (inverse of distances)
+    weights = 1 / distances
+
+    # Weighted average calculation for upfront charges
+    weighted_upfront_charges = (
+        (weights * X_train_loan['Upfront_charges']).sum() / weights.sum()
     )
-    return weighted_avg_upfront
+
+    return weighted_upfront_charges
 
 # Streamlit app
 st.title("Financial Risk Prediction App")
@@ -53,10 +68,16 @@ tab1, tab2 = st.tabs(["Churn Prediction", "Loan Default Prediction"])
 # Churn Prediction Tab
 with tab1:
     st.markdown("### Churn Prediction")
-    credit_score_churn = st.number_input("Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01)
-    balance_churn = st.number_input("Balance", min_value=0.0, step=100.0)
-    num_of_products_churn = st.number_input("Number of Products", min_value=0, step=1)
-    has_cr_card_churn = st.selectbox("Has Credit Card?", [0, 1], help="0 = No, 1 = Yes")
+    credit_score_churn = st.number_input(
+        "Churn - Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01
+    )
+    balance_churn = st.number_input("Churn - Balance", min_value=0.0, step=100.0)
+    num_of_products_churn = st.number_input(
+        "Churn - Number of Products", min_value=0, step=1
+    )
+    has_cr_card_churn = st.selectbox(
+        "Churn - Has Credit Card?", [0, 1], help="0 = No, 1 = Yes"
+    )
 
     if st.button("Predict Churn"):
         input_data_churn = pd.DataFrame({
@@ -72,10 +93,15 @@ with tab1:
 # Loan Default Prediction Tab
 with tab2:
     st.markdown("### Loan Default Prediction")
-    loan_amount = st.number_input("Loan Amount", min_value=0.0, step=100.0)
-    rate_of_interest_percent = st.number_input("Rate of Interest (%)", min_value=0.0, max_value=100.0, step=0.1)
+    loan_amount = st.number_input("Loan - Amount", min_value=0.0, step=100.0)
+    rate_of_interest_percent = st.number_input(
+        "Loan - Rate of Interest (%)", min_value=0.0, max_value=100.0, step=0.1
+    )
     rate_of_interest = rate_of_interest_percent / 100
-    income = st.number_input("Income", min_value=0.0, step=100.0)
+    income = st.number_input("Loan - Income", min_value=0.0, step=100.0)
+    credit_score_loan = st.number_input(
+        "Loan - Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01
+    )
 
     if st.button("Predict Loan Default"):
         upfront_charge = calculate_upfront_charges_knn(rate_of_interest, loan_amount, income)
@@ -86,7 +112,12 @@ with tab2:
             'loan_amount': [loan_amount],
             'Upfront_charges': [upfront_charge],
             'income': [income],
+            'CreditScore_Normalized': [credit_score_loan],
         })
+        
+        # Ensure column names match training data
+        input_data_loan = input_data_loan[X_train_loan.columns]
+
         prediction_loan = rf_loan.predict_proba(input_data_loan)[0][1]
         st.write(f"Likelihood of loan default: {prediction_loan:.2%}")
     st.write(f"Random Forest Model Accuracy (Loan): {loan_accuracy:.4f}")
