@@ -19,8 +19,8 @@ rf_churn = RandomForestClassifier(random_state=42, n_estimators=50, max_depth=5)
 rf_churn.fit(X_train_churn, y_train_churn)
 churn_accuracy = accuracy_score(y_test_churn, rf_churn.predict(X_test_churn))
 
-# Loan Default Prediction Preprocessing
-X_loan = data[['rate_of_interest', 'loan_amount', 'income', 'Upfront_charges', 'CreditScore_Normalized']]
+# Loan Default Prediction Preprocessing (without Upfront Charges)
+X_loan = data[['rate_of_interest', 'loan_amount', 'income', 'CreditScore_Normalized']]
 y_loan = data['Status']
 X_train_loan, X_test_loan, y_train_loan, y_test_loan = train_test_split(
     X_loan, y_loan, test_size=0.2, random_state=42
@@ -71,16 +71,12 @@ with tab2:
     credit_score_loan = st.number_input(
         "Loan - Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01
     )
-    upfront_charges = st.number_input(
-        "Loan - Upfront Charges", min_value=0.0, step=50.0
-    )
 
     if st.button("Predict Loan Default"):
         input_data_loan = pd.DataFrame({
             'rate_of_interest': [rate_of_interest],
             'loan_amount': [loan_amount],
             'income': [income],
-            'Upfront_charges': [upfront_charges],
             'CreditScore_Normalized': [credit_score_loan],
         })
         
