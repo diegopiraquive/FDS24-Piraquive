@@ -340,14 +340,12 @@ linear_model_churn.fit(X_train_churn, y_train_churn)
 # Predictions and Evaluation for Churn
 y_pred_churn = linear_model_churn.predict(X_test_churn)
 r2_churn = r2_score(y_test_churn, y_pred_churn)
-mse_churn = mean_squared_error(y_test_churn, y_pred_churn)
         """)
 
         # Display Evaluation Metrics
         st.markdown("""
         #### Evaluation Metrics:
         - **R²**: 0.21
-        - **Mean Squared Error (MSE)**: {mse_churn:.4f}
         """)
 
     # Random Forest Section
