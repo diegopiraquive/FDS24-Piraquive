@@ -78,9 +78,31 @@ with tab1:
         st.subheader("Outlier Detection")
         numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
 
-        fig, ax = plt.subplots(1, 3, figsize=(15, 3))
-        churn_df[numerical_churn].plot(kind='box', subplots=True, ax=ax, title='Outliers')
+        # Create box and violin plots for outliers
+        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+        for i, col in enumerate(numerical_churn):
+            sns.boxplot(data=churn_df, y=col, ax=axes[i], color="skyblue", width=0.3)
+            sns.violinplot(data=churn_df, y=col, ax=axes[i], color="lightgrey", alpha=0.5, inner=None)
+            axes[i].scatter(
+                y=churn_df[col],
+                x=np.random.normal(0, 0.1, size=len(churn_df[col])),  # jitter for outliers
+                alpha=0.5,
+                color="red",
+                label="Outliers",
+            )
+            axes[i].set_title(f"Outliers and Distribution: {col}")
+            axes[i].set_ylabel(col)
+
+        fig.tight_layout()
         st.pyplot(fig)
+
+        # Insights
+        st.markdown("""
+        ### Insights
+        - **CreditScore**: A few low outliers were detected, indicating potential anomalies or clients with exceptionally poor credit scores.
+        - **NumOfProducts**: Outliers were observed for clients with 4 products, which could indicate a unique group of highly engaged clients.
+        - **Balance**: No significant outliers, but the distribution shows a skew toward higher balances.
+        """)
 
     # Uncommented sections for MICE Imputation and Encoding
     # st.subheader("MICE Imputation")
