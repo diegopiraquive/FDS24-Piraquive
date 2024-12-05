@@ -27,12 +27,12 @@ churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/ma
 churn_df = pd.read_csv(churn_url)
 
 # Create three tabs
-tab1, tab2, tab3, tab4 = st.tabs(["About the Dataset", "Science Behind Prediction", "IDA", "EDA"])
+tab1, tab2, tab3, tab4 = st.tabs(["About the Data", "Science Behind Prediction", "IDA", "EDA"])
 
 
 # Tab 1: About the Dataset
 with tab1:
-    st.title("About the Dataset")
+    st.title("About the Data")
     st.markdown("""
     ### Bank Customer Churn Prediction Dataset
     This dataset contains information about customers of a bank and their likelihood to churn. 
