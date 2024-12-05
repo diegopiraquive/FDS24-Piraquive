@@ -294,7 +294,6 @@ with tab2:
     
     
 # Science Behind Prediction Tab
-with tab3:
 
 with tab3:
     st.title("Science Behind Prediction")
