@@ -39,11 +39,14 @@ with tab1:
 
     if ida_section == "Missing Values":
         st.subheader("Missing Value Analysis")
+        st.write(f"Dataset Size: {churn_df.shape[0]} rows and {churn_df.shape[1]} columns")
+        
         # Heatmap for missing values
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.heatmap(churn_df.isnull(), cbar=False, ax=ax)
         ax.set_title("Missing Values: Churn Data")
         st.pyplot(fig)
+        st.write("As shown in the heatmap above, no missing values were detected in the dataset.")
 
     elif ida_section == "Correlation Heatmap":
         st.subheader("Correlation Heatmap")
