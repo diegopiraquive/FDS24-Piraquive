@@ -24,6 +24,8 @@ from sklearn.decomposition import PCA
 # App Title
 st.title("Financial Risk App: Churn Analysis")
 
+st.markdown("**This app aims to assist bank employees in predicting the likelihood of client churn using financial and engagement data.**")
+
 # Instructions below the title
 st.markdown("""
 ### Instructions for Use
