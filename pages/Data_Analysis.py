@@ -287,20 +287,134 @@ with tab2:
     elif eda_section == "Hypothesis Generation":
         st.subheader("Hypothesis Generation")
         st.write("""
-        - Customers with lower credit scores are more likely to churn.
-        - Product engagement (e.g., NumOfProducts) may mitigate the risk of churn.
+        - Customers with higher credit scores are more likely to churn because are more attractive for other banks.
+        - Product engagement may mitigate the risk of churn.
         """)
 
     
     
 # Science Behind Prediction Tab
 with tab3:
-    st.title("Science Behind Prediction")
-    st.markdown("""
-    ### Why Predict Churn?
-    - **Churn Prediction**: Helps banks retain valuable customers by identifying individuals likely to leave.
 
-    ### Techniques Used:
-    - **Random Forest**: Chosen for its ability to handle imbalanced datasets and nonlinear relationships.
-    - **Feature Encoding**: Used to convert categorical variables into numerical formats for better model compatibility.
+with tab3:
+    st.title("Science Behind Prediction")
+
+    # Short introduction
+    st.markdown("""
+    To predict churn, we applied two models: **Multiple Linear Regression** and **Random Forest**. Each approach provides insights into churn behavior and helps identify the most suitable method for our dataset.
     """)
+
+    # Filter to select the Machine Learning model
+    model_choice = st.selectbox(
+        "Select a Machine Learning Model:",
+        ["Multiple Linear Regression", "Random Forest"]
+    )
+
+    # Multiple Linear Regression Section
+    if model_choice == "Multiple Linear Regression":
+        st.subheader("Churn Prediction: Multiple Linear Regression")
+
+        # Display explanation
+        st.markdown("""
+        ### Multiple Linear Regression Insights
+        - **Churn Prediction**: The model achieved an R² of **0.21**, meaning it explains **21%** of the variance in churn behavior.
+        - This indicates that while the model captures some relationships, it lacks strong predictive power for churn prediction.
+
+        ### Next Steps
+        - Since multiple linear regression shows low predictive power, we applied a more advanced method: **Random Forest**.
+        """)
+
+        # Display the code for Linear Regression
+        st.markdown("#### Code Applied:")
+        st.code("""
+# Prepare Data for Churn Prediction
+X_churn = churn_loan_merged[['CreditScore_Normalized', 'NumOfProducts', 'HasCrCard', 'Balance']]
+y_churn = churn_loan_merged['Exited']
+
+# Split the data
+X_train_churn, X_test_churn, y_train_churn, y_test_churn = train_test_split(X_churn, y_churn, test_size=0.2, random_state=42)
+
+# Fit Linear Regression for Churn
+linear_model_churn = LinearRegression()
+linear_model_churn.fit(X_train_churn, y_train_churn)
+
+# Predictions and Evaluation for Churn
+y_pred_churn = linear_model_churn.predict(X_test_churn)
+r2_churn = r2_score(y_test_churn, y_pred_churn)
+mse_churn = mean_squared_error(y_test_churn, y_pred_churn)
+        """)
+
+        # Display Evaluation Metrics
+        st.markdown("""
+        #### Evaluation Metrics:
+        - **R²**: 0.21
+        - **Mean Squared Error (MSE)**: {mse_churn:.4f}
+        """)
+
+    # Random Forest Section
+    elif model_choice == "Random Forest":
+        st.subheader("Churn Prediction: Random Forest")
+
+        # Display explanation
+        st.markdown("""
+        ### Why Random Forest?
+        Random Forest predicts outcomes by using multiple decision trees and combining their results. It works as follows:
+        - **Build Trees**: Creates multiple decision trees using random subsets of data and features.
+        - **Make Predictions**:
+          - **Classification**: Predicts outcomes based on majority voting (e.g., churn or no churn).
+          - **Regression**: Predicts numerical outcomes by averaging predictions across trees.
+
+        #### Example Decision Tree:
+        - **Root**: Is Balance > 100,000?
+          - **No**: Is CreditScore_Normalized > 0.5?
+            - **No → Predict: Churn**
+            - **Yes → Predict: No Churn**
+          - **Yes**: Is NumOfProducts > 1?
+            - **No → Predict: Churn**
+            - **Yes → Predict: No Churn
+        """)
+
+        # Display the code for Random Forest
+        st.markdown("#### Code Applied:")
+        st.code("""
+# Random Forest for Churn Prediction
+rf_churn = RandomForestClassifier(random_state=42, n_estimators=100)
+rf_churn.fit(X_train_churn, y_train_churn)
+
+# Predictions and Evaluation for Churn
+y_pred_churn = rf_churn.predict(X_test_churn)
+churn_accuracy = accuracy_score(y_test_churn, y_pred_churn)
+
+# Feature Importance for Churn Prediction
+churn_features = X_train_churn.columns
+churn_importances = rf_churn.feature_importances_
+churn_feature_importance_df = pd.DataFrame({
+    "Feature": churn_features,
+    "Importance": churn_importances
+}).sort_values(by="Importance", ascending=False)
+        """)
+
+        # Display Evaluation Metrics
+        st.markdown("""
+        #### Evaluation Metrics:
+        - **Accuracy**: 98.4%
+        - **Feature Importance**:
+          - **CreditScore_Normalized**: 45.9%
+          - **Balance**: 40.4%
+        """)
+
+        # Explain Key Metrics
+        st.markdown("""
+        ### Key Metrics
+        - **Accuracy**: Percentage of correct predictions made by the model.
+        - **F1-Score**: Balances precision and recall:
+          - **Precision**: How many predicted churns were actual churns.
+          - **Recall**: How many actual churns were correctly identified.
+
+        ### Results Summary:
+        - **Prediction Accuracy**: Random Forest achieved an accuracy of **98.4%**, making it highly reliable for churn prediction.
+        - **Feature Importance**: Balance and CreditScore_Normalized are the main predictors, contributing **86%** to the model’s performance.
+        """)
+
+    
+
