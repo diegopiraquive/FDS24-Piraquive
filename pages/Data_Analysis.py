@@ -131,7 +131,7 @@ with tab2:
         st.write(f"Selected Column: {column_choice}")
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        sns.histplot(churn_df[column_choice], bins=20, ax=ax, kde=True, color=theme)
+        sns.histplot(churn_df[column_choice], bins=20, ax=ax, kde=True)
         ax.set_title(f'Histogram of {column_choice}')
         st.pyplot(fig)
 
