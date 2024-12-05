@@ -182,63 +182,74 @@ with tab2:
         st.pyplot(fig)
 
     # Multivariate Analysis (PCA)
+    
+    # Multivariate Analysis (PCA)
     elif eda_section == "Multivariate Analysis":
         st.subheader("Multivariate Analysis: PCA")
-        st.write("Performing PCA and visualizing Scree plot and Biplot...")
-
-        # Define PCA scree plot and biplot function
-        def pca_scree_biplot(df, feature_names=None, scale=3, dataset_title="PCA Analysis"):
+    
+        # Define PCA scree plot and biplot functions
+        def pca_scree_plot(df):
             X_scaled = StandardScaler().fit_transform(df)
-
-            U, s, Vt = np.linalg.svd(X_scaled)
-            V = Vt.T
-
-            fig = plt.figure(figsize=(15, 6))
-            fig.suptitle(dataset_title, fontsize=16)
-
+            U, s, _ = np.linalg.svd(X_scaled)
+            
             # Scree plot
-            plt.subplot(121)
             var_exp = s**2 / np.sum(s**2)
             cum_var_exp = np.cumsum(var_exp)
-
-            plt.plot(range(1, len(var_exp) + 1), var_exp, 'bo-', label='Individual')
-            plt.plot(range(1, len(cum_var_exp) + 1), cum_var_exp, 'ro-', label='Cumulative')
-            plt.xlabel('Principal Component')
-            plt.ylabel('Proportion of Variance Explained')
-            plt.title('Scree Plot')
-            plt.legend()
-            plt.grid(True)
-
-            # Biplot
-            plt.subplot(122)
-            scores = X_scaled @ V
-            plt.scatter(scores[:, 0], scores[:, 1], c='b', alpha=0.5, label='Samples')
-
-            if feature_names is None:
-                feature_names = [f"Feature {i+1}" for i in range(df.shape[1])]
-
+    
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.plot(range(1, len(var_exp) + 1), var_exp, 'bo-', label='Individual')
+            ax.plot(range(1, len(cum_var_exp) + 1), cum_var_exp, 'ro-', label='Cumulative')
+            ax.set_xlabel('Principal Component')
+            ax.set_ylabel('Proportion of Variance Explained')
+            ax.set_title('Scree Plot')
+            ax.legend()
+            ax.grid(True)
+            return fig
+    
+        def pca_biplot(df, feature_names, scale=3):
+            X_scaled = StandardScaler().fit_transform(df)
+            _, s, Vt = np.linalg.svd(X_scaled)
+            V = Vt.T
+    
+            scores = X_scaled @ V  # Project data onto principal components
+    
+            fig, ax = plt.subplots(figsize=(10, 8))
+            ax.scatter(scores[:, 0], scores[:, 1], c='b', alpha=0.5, label='Samples')
+    
             for i, feature in enumerate(feature_names):
                 x = V[i, 0] * s[0] * scale
                 y = V[i, 1] * s[1] * scale
-                plt.arrow(0, 0, x, y, color='r', alpha=0.5, head_width=0.1)
-                ha = 'left' if x >= 0 else 'right'
-                va = 'bottom' if y >= 0 else 'top'
-                plt.text(x * 1.1, y * 1.1, feature, ha=ha, va=va)
-
-            plt.xlabel(f"PC1 ({var_exp[0]:.1%} variance)")
-            plt.ylabel(f"PC2 ({var_exp[1]:.1%} variance)")
-            plt.title('PCA Biplot')
-            plt.grid(True)
-            plt.legend(["Samples", "Features"])
-            plt.tight_layout()
-
+                ax.arrow(0, 0, x, y, color='r', alpha=0.5, head_width=0.1)
+                ax.text(x * 1.1, y * 1.1, feature, ha='left' if x >= 0 else 'right', va='bottom' if y >= 0 else 'top')
+    
+            ax.set_xlabel(f"PC1 ({s[0]**2 / np.sum(s**2):.1%} variance)")
+            ax.set_ylabel(f"PC2 ({s[1]**2 / np.sum(s**2):.1%} variance)")
+            ax.set_title('PCA Biplot')
+            ax.legend(["Samples", "Features"])
+            ax.grid(True)
             return fig
-
+    
         # Perform PCA on numerical columns
         numerical_data = churn_df.select_dtypes(include=['float64', 'int64'])
         feature_names = numerical_data.columns
-        pca_fig = pca_scree_biplot(numerical_data, feature_names, scale=2.5, dataset_title="Churn Dataset PCA")
-        st.pyplot(pca_fig)
+    
+        # Scree Plot
+        scree_fig = pca_scree_plot(numerical_data)
+        st.pyplot(scree_fig)
+    
+        # Biplot
+        biplot_fig = pca_biplot(numerical_data, feature_names, scale=2.5)
+        st.pyplot(biplot_fig)
+    
+        # Insights
+        st.markdown("""
+        ### Insights from PCA
+        1. **Scree Plot**:
+            - The first few components explain the majority of variance. For this dataset, PC1 and PC2 explain a significant proportion of variance, making them ideal for dimensionality reduction.
+        2. **Biplot**:
+            - **PC1** captures the most variance and is influenced by features like `Balance` and `Age`.
+            - **PC2** captures less variance but is influenced by features like `NumOfProducts`.
+        """)
 
     # Correlation Analysis
     elif eda_section == "Correlation Analysis":
