@@ -86,7 +86,7 @@ if st.button("Predict Churn"):
     })
     prediction_churn = rf_churn.predict_proba(input_data_churn)[0][1]
     st.write(f"Likelihood of churn: {prediction_churn:.2%}")
-st.write(f"Random Forest Model Accuracy (Churn): {churn_accuracy:.4f}")
+st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
 
 # Additional information below the model accuracy
 st.markdown("""
