@@ -47,9 +47,9 @@ rf_churn.fit(X_train_churn, y_train_churn)
 churn_accuracy = accuracy_score(y_test_churn, rf_churn.predict(X_test_churn))
 
 # Streamlit app
-st.title("Churn Prediction App")
+#st.title("Churn Prediction App")
 
-st.markdown("### Churn Prediction")
+#st.markdown("### Churn Prediction")
 credit_score_churn = st.number_input(
     "Credit Score (0-1 scale)", min_value=0.0, max_value=1.0, step=0.01
 )
