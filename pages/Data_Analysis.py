@@ -111,6 +111,13 @@ with tab1:
 # EDA Tab
 with tab2:
     st.title("Exploratory Data Analysis (EDA)")
+    
+    # Dropdown to select color theme for all plots
+    theme = st.selectbox(
+        "Select a Plot Color Theme:",
+        ["coolwarm", "viridis", "plasma", "cividis", "magma"]
+    )
+    
     eda_section = st.selectbox(
         "Select a Section for EDA:",
         ["Univariate Analysis", "Bivariate Analysis", "Multivariate Analysis", "Correlation Analysis", "Hypothesis Generation"]
@@ -124,7 +131,7 @@ with tab2:
         st.write(f"Selected Column: {column_choice}")
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        sns.histplot(churn_df[column_choice], bins=20, ax=ax, kde=True)
+        sns.histplot(churn_df[column_choice], bins=20, ax=ax, kde=True, color=theme)
         ax.set_title(f'Histogram of {column_choice}')
         st.pyplot(fig)
 
@@ -139,29 +146,101 @@ with tab2:
         st.write(f"Selected Y-axis Variable: {column_choice_2}")
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        sns.scatterplot(x=churn_df[column_choice_1], y=churn_df[column_choice_2], ax=ax)
+        sns.scatterplot(
+            x=churn_df[column_choice_1], 
+            y=churn_df[column_choice_2], 
+            ax=ax, 
+            color=theme
+        )
         ax.set_title(f'Scatter Plot: {column_choice_1} vs {column_choice_2}')
         st.pyplot(fig)
 
     elif eda_section == "Multivariate Analysis":
-        st.subheader("Multivariate Analysis")
-        st.write("PCA Analysis for the Churn dataset to be implemented here.")
+        st.subheader("Multivariate Analysis: PCA")
+        st.write("Performing PCA and visualizing Scree plot and Biplot...")
+        
+        # Use your provided PCA scree and biplot function
+        def pca_scree_biplot(df, feature_names=None, scale=3, dataset_title="PCA Analysis"):
+            X_scaled = StandardScaler().fit_transform(df)
+
+            U, s, Vt = np.linalg.svd(X_scaled)
+            V = Vt.T
+
+            fig = plt.figure(figsize=(15, 6))
+            fig.suptitle(dataset_title, fontsize=16)
+
+            # Scree plot
+            plt.subplot(121)
+            var_exp = s**2 / np.sum(s**2)
+            cum_var_exp = np.cumsum(var_exp)
+
+            plt.plot(range(1, len(var_exp) + 1), var_exp, 'bo-', label='Individual')
+            plt.plot(range(1, len(cum_var_exp) + 1), cum_var_exp, 'ro-', label='Cumulative')
+            plt.xlabel('Principal Component')
+            plt.ylabel('Proportion of Variance Explained')
+            plt.title('Scree Plot')
+            plt.legend()
+            plt.grid(True)
+
+            # Biplot
+            plt.subplot(122)
+            scores = X_scaled @ V
+            plt.scatter(scores[:, 0], scores[:, 1], c='b', alpha=0.5, label='Samples')
+
+            if feature_names is None:
+                feature_names = [f"Feature {i+1}" for i in range(df.shape[1])]
+
+            for i, feature in enumerate(feature_names):
+                x = V[i, 0] * s[0] * scale
+                y = V[i, 1] * s[1] * scale
+                plt.arrow(0, 0, x, y, color='r', alpha=0.5, head_width=0.1)
+                ha = 'left' if x >= 0 else 'right'
+                va = 'bottom' if y >= 0 else 'top'
+                plt.text(x * 1.1, y * 1.1, feature, ha=ha, va=va)
+
+            plt.xlabel(f"PC1 ({var_exp[0]:.1%} variance)")
+            plt.ylabel(f"PC2 ({var_exp[1]:.1%} variance)")
+            plt.title('PCA Biplot')
+            plt.grid(True)
+            plt.legend(["Samples", "Features"])
+            plt.tight_layout()
+
+            return fig
+        
+        # Perform PCA on numerical columns
+        numerical_data = churn_df.select_dtypes(include=['float64', 'int64'])
+        feature_names = numerical_data.columns
+        pca_fig = pca_scree_biplot(numerical_data, feature_names, scale=2.5, dataset_title="Churn Dataset PCA")
+        st.pyplot(pca_fig)
 
     elif eda_section == "Correlation Analysis":
-        st.subheader("Correlation Analysis")
-        corr_matrix = churn_df.corr()
+        st.subheader("Correlation Heatmap")
+        numeric_churn_df = churn_df.select_dtypes(include=['float64', 'int64'])
+        corr_matrix = numeric_churn_df.corr()
 
         fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-        ax.set_title("Correlation Heatmap")
+        sns.heatmap(corr_matrix, annot=True, cmap=theme, linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
         st.pyplot(fig)
+        
+        st.markdown("""
+        ### Key Insights
+        - Most features have very weak correlations with each other, as indicated by values close to 0.
+        - **Balance** and churn show a weak positive correlation (0.12).
+        - **NumOfProducts** has a weak negative correlation (-0.03) with churn.
+    
+        ### Irrelevant Features
+        - **RowNumber**, **CustomerId**, and **EstimatedSalary** have very little correlation with churn.
+    
+        ### Feature Independence
+        - Most features show minimal interdependence, reducing multicollinearity concerns.
+        """)
 
     elif eda_section == "Hypothesis Generation":
         st.subheader("Hypothesis Generation")
         st.write("""
         - Customers with lower credit scores are more likely to churn.
         - Product engagement (e.g., NumOfProducts) may mitigate the risk of churn.
-        """)
+        """) 
 
 # Science Behind Prediction Tab
 with tab3:
