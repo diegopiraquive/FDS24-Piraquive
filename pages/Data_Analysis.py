@@ -109,57 +109,84 @@ with tab1:
     # st.subheader("Encoding Categorical Variables")
 
 # EDA Tab
+
+from matplotlib import cm
+from matplotlib.colors import to_hex
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
+# EDA Tab
 with tab2:
     st.title("Exploratory Data Analysis (EDA)")
     
-    # Dropdown to select color theme for all plots
+    # Dropdown to select a colormap
     theme = st.selectbox(
         "Select a Plot Color Theme:",
         ["coolwarm", "viridis", "plasma", "cividis", "magma"]
     )
     
+    # Convert the colormap to a valid hex color for uniform plot styling
+    colormap = cm.get_cmap(theme)
+    selected_color = to_hex(colormap(0.5))  # Get the midpoint color as hex
+
+    # Dropdown to select EDA section
     eda_section = st.selectbox(
         "Select a Section for EDA:",
         ["Univariate Analysis", "Bivariate Analysis", "Multivariate Analysis", "Correlation Analysis", "Hypothesis Generation"]
     )
 
+    # Univariate Analysis
     if eda_section == "Univariate Analysis":
         st.subheader("Univariate Analysis")
         numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
 
+        # Select column for histogram
         column_choice = st.selectbox("Select a Numeric Variable:", numerical_churn)
         st.write(f"Selected Column: {column_choice}")
 
+        # Plot histogram with the selected colormap
         fig, ax = plt.subplots(figsize=(8, 5))
-        sns.histplot(churn_df[column_choice], bins=20, ax=ax, kde=True)
+        sns.histplot(
+            churn_df[column_choice],
+            bins=20,
+            ax=ax,
+            kde=True,
+            color=selected_color
+        )
         ax.set_title(f'Histogram of {column_choice}')
         st.pyplot(fig)
 
+    # Bivariate Analysis
     elif eda_section == "Bivariate Analysis":
         st.subheader("Bivariate Analysis")
         numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
 
+        # Select variables for scatter plot
         column_choice_1 = st.selectbox("Select X-axis Variable:", numerical_churn)
         column_choice_2 = st.selectbox("Select Y-axis Variable:", numerical_churn)
 
         st.write(f"Selected X-axis Variable: {column_choice_1}")
         st.write(f"Selected Y-axis Variable: {column_choice_2}")
 
+        # Plot scatter plot with the selected colormap
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.scatterplot(
-            x=churn_df[column_choice_1], 
-            y=churn_df[column_choice_2], 
-            ax=ax, 
-            color=theme
+            x=churn_df[column_choice_1],
+            y=churn_df[column_choice_2],
+            ax=ax,
+            color=selected_color
         )
         ax.set_title(f'Scatter Plot: {column_choice_1} vs {column_choice_2}')
         st.pyplot(fig)
 
+    # Multivariate Analysis (PCA)
     elif eda_section == "Multivariate Analysis":
         st.subheader("Multivariate Analysis: PCA")
         st.write("Performing PCA and visualizing Scree plot and Biplot...")
-        
-        # Use your provided PCA scree and biplot function
+
+        # Define PCA scree plot and biplot function
         def pca_scree_biplot(df, feature_names=None, scale=3, dataset_title="PCA Analysis"):
             X_scaled = StandardScaler().fit_transform(df)
 
@@ -206,20 +233,30 @@ with tab2:
             plt.tight_layout()
 
             return fig
-        
+
         # Perform PCA on numerical columns
         numerical_data = churn_df.select_dtypes(include=['float64', 'int64'])
         feature_names = numerical_data.columns
         pca_fig = pca_scree_biplot(numerical_data, feature_names, scale=2.5, dataset_title="Churn Dataset PCA")
         st.pyplot(pca_fig)
 
+    # Correlation Analysis
     elif eda_section == "Correlation Analysis":
         st.subheader("Correlation Heatmap")
         numeric_churn_df = churn_df.select_dtypes(include=['float64', 'int64'])
         corr_matrix = numeric_churn_df.corr()
 
+        # Plot heatmap with the selected colormap
         fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(corr_matrix, annot=True, cmap=theme, linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
+        sns.heatmap(
+            corr_matrix,
+            annot=True,
+            cmap=theme,  # Apply selected theme
+            linewidths=0.5,
+            fmt=".2f",
+            annot_kws={"size": 10},
+            ax=ax
+        )
         st.pyplot(fig)
         
         st.markdown("""
@@ -235,13 +272,16 @@ with tab2:
         - Most features show minimal interdependence, reducing multicollinearity concerns.
         """)
 
+    # Hypothesis Generation
     elif eda_section == "Hypothesis Generation":
         st.subheader("Hypothesis Generation")
         st.write("""
         - Customers with lower credit scores are more likely to churn.
         - Product engagement (e.g., NumOfProducts) may mitigate the risk of churn.
-        """) 
+        """)
 
+    
+    
 # Science Behind Prediction Tab
 with tab3:
     st.title("Science Behind Prediction")
