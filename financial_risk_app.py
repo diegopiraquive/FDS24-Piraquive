@@ -28,6 +28,7 @@ st.title("Financial Risk App: Churn Analysis")
 st.markdown("""
 ### Instructions for Use
 1. **Enter Client Information**:
+    
     **Note:** An initial prediction can be made using just the Credit Score and Balance. However, including additional information may improve the prediction’s accuracy and reliability.
    - **Credit Score**: Provide the normalized credit score of the client (range: 0 to 1).
    - **Balance**: Input the client's current account balance.
