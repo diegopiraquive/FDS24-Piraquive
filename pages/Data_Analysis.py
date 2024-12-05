@@ -56,6 +56,19 @@ with tab1:
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", linewidths=0.5, fmt=".2f", annot_kws={"size": 10}, ax=ax)
         st.pyplot(fig)
+        st.markdown("""
+        
+        ### Key Insights
+        - Most features have very weak correlations with each other, as indicated by values close to 0.
+        - **Balance** and churn show a weak positive correlation (0.12).
+        - **NumOfProducts** has a weak negative correlation (-0.03) with churn.
+    
+        ### Irrelevant Features
+        - **RowNumber**, **CustomerId**, and **EstimatedSalary** have very little correlation with churn.
+    
+        ### Feature Independence
+        - Most features show minimal interdependence, reducing multicollinearity concerns.
+        """)
 
     elif ida_section == "Descriptive Statistics":
         st.subheader("Descriptive Statistics")
