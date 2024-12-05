@@ -55,7 +55,7 @@ with tab1:
     - **Exited**: Whether the customer has churned (1 = yes, 0 = no).
     """)
 
-    st.dataframe(churn_df.head(25))
+    st.dataframe(churn_df.head(51))
 
 
 # Science Behind Prediction Tab
