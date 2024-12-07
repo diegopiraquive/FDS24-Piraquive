@@ -241,8 +241,8 @@ with tab3:
                 churn_df,
                 y=col,
                 points="all",  # Show all data points as jitter
-                color_discrete_sequence=["#636EFA"],  # Use a consistent color theme
-                title=f"Interactive Boxplot for {col}"
+                color_discrete_sequence=["red"],  # Use a consistent color theme
+                #title=f"Interactive Boxplot for {col}"
             )
             fig.update_traces(marker=dict(opacity=0.6))  # Adjust opacity for clarity
             fig.update_layout(
