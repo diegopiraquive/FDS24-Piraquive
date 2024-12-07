@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
+import plotly.express as px
 
 # Load the churn dataset from GitHub
 churn_url = 'https://raw.githubusercontent.com/diegopiraquive/FDS24-Piraquive/main/DS_Churn_Modelling.csv'
@@ -232,24 +233,25 @@ with tab3:
     elif ida_section == "Outlier Detection":
         st.subheader("Outlier Detection")
         numerical_churn = ['CreditScore', 'NumOfProducts', 'Balance']
-
-        # Create box and violin plots for outliers
-        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-        for i, col in enumerate(numerical_churn):
-            sns.boxplot(data=churn_df, y=col, ax=axes[i], color="skyblue", width=0.3)
-            sns.violinplot(data=churn_df, y=col, ax=axes[i], color="lightgrey", alpha=0.5, inner=None)
-            axes[i].scatter(
-                y=churn_df[col],
-                x=np.random.normal(0, 0.1, size=len(churn_df[col])),  # jitter for outliers
-                alpha=0.5,
-                color="red",
-                label="Outliers",
+    
+        # Create interactive boxplots using Plotly
+        for col in numerical_churn:
+            st.markdown(f"### {col}")
+            fig = px.box(
+                churn_df,
+                y=col,
+                points="all",  # Show all data points as jitter
+                color_discrete_sequence=["#636EFA"],  # Use a consistent color theme
+                title=f"Interactive Boxplot for {col}"
             )
-            axes[i].set_title(f"Outliers and Distribution: {col}")
-            axes[i].set_ylabel(col)
-
-        fig.tight_layout()
-        st.pyplot(fig)
+            fig.update_traces(marker=dict(opacity=0.6))  # Adjust opacity for clarity
+            fig.update_layout(
+                yaxis_title=col,
+                xaxis_title="",
+                showlegend=False,
+                template="plotly_dark",  # Choose a dark template for better readability
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
         # Insights
         st.markdown("""
