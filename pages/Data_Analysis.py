@@ -47,7 +47,7 @@ with st.spinner("Loading visualizations..."):
     
         The dataset is publicly available on [Kaggle](https://www.kaggle.com/datasets/shubhammeshram579/bank-customer-churn-prediction/data).
 
-        All the app documentation is available on [Git Hub Repository](https://github.com/diegopiraquive/FDS24-Piraquive/tree/main)
+        All the app documentation is available on [Git Hub Repository](https://github.com/diegopiraquive/FDS24-Piraquive/tree/main).
         
         """)
 
