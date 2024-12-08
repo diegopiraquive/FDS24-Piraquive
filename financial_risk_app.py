@@ -35,7 +35,10 @@ with st.spinner("Loading..."):
     2. **Make a Prediction**:
        - Click the **"Predict Churn"** button after filling out the fields.
        - The app will display the likelihood of the client churning as a percentage.
+    
+    Note: For this demo version, the credit score has been scaled from 0 to 1 (0 = poor, 1 = very good). Once the app is launched, bank staff will be able to input the actual customer credit scores.
     """)
+    
     
     import pandas as pd
     import numpy as np
