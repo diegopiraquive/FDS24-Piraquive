@@ -14,7 +14,6 @@ from sklearn.experimental import enable_iterative_imputer  # Required for MICE
 from sklearn.impute import IterativeImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA 
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -468,5 +467,5 @@ with st.spinner("Loading visualizations..."):
             - Product engagement may mitigate the risk of churn.
             """)
 
-    
+    # The application of the streamlit app was inspired in the analysis made in the Piraquive_CMSE830_Proyect.ipynb file and with assistant from ChatGPT 4o on December 2024.
     
