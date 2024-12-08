@@ -13,7 +13,7 @@ from sklearn.impute import IterativeImputer, SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA 
 
-st.sidebar.title("Financial Risk App")
+
 
 with st.spinner("Loading..."):
 
