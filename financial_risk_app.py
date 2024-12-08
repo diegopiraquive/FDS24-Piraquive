@@ -74,14 +74,16 @@ with st.spinner("Loading..."):
         "Number of Products", min_value=0, step=1
     )
     has_cr_card_churn = st.selectbox(
-        "Has Credit Card? 0 = No, 1 = Yes", [0, 1], help="0 = No, 1 = Yes"
+        "Has Credit Card?", ["Yes", "No"], help="Select whether the client has a credit card."
     )
+    # Map the "Yes"/"No" selection to 1/0 internally
+    has_cr_card_churn_mapped = 1 if has_cr_card_churn == "Yes" else 0
     
     if st.button("Predict Churn"):
         input_data_churn = pd.DataFrame({
             'CreditScore_Normalized': [credit_score_churn],
             'NumOfProducts': [num_of_products_churn],
-            'HasCrCard': [has_cr_card_churn],
+            'HasCrCard': [has_cr_card_churn_mapped],
             'Balance': [balance_churn],
         })
         prediction_churn = rf_churn.predict_proba(input_data_churn)[0][1]
