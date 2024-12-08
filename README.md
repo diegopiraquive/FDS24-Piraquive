@@ -3,6 +3,8 @@
 ## Project Overview
 This project develops a model to predict financial risk, focusing on customer churn prediction using key financial behavior variables from a  **Churn Dataset**. The model helps financial institutions identify high-risk customers.
 
+The dataset is publicly available on [Kaggle](https://www.kaggle.com/datasets/shubhammeshram579/bank-customer-churn-prediction/data).
+
 ---
 
 ## Dataset
@@ -66,6 +68,6 @@ To build a predictive model that identifies high-risk customers by analyzing the
 Diego Piraquive  
 Email: piraquiv@msu.edu  
 
-This README was created with assistance from ChatGPT 4o on October 15, 2024.
+This README was created with assistance from ChatGPT 4o on December 7, 2024.
 
 
