@@ -87,7 +87,7 @@ with st.spinner("Loading..."):
             'Balance': [balance_churn],
         })
         prediction_churn = rf_churn.predict_proba(input_data_churn)[0][1]
-        st.write(f"Likelihood of churn: {prediction_churn:.2%}")
+        st.success(f"Likelihood of churn: {prediction_churn:.2%}")
     st.write(f"Random Forest Model Accuracy: {churn_accuracy:.4f}")
     
     # Additional information below the model accuracy
