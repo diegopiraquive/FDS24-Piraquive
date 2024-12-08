@@ -99,4 +99,4 @@ with st.spinner("Loading..."):
     - **Limitations**: Predictions are based on statistical models and should be supplemented with your professional judgment and additional client data.
     """)
     
-    # The application of the streamlit app was inspired in the analysis made in the Piraquive_CMSE830_Proyect.ipynb file and with assistant from ChatGPT 4o on October 2024. 
+    # The application of the streamlit app was inspired in the analysis made in the Piraquive_CMSE830_Proyect.ipynb file and with assistant from ChatGPT 4o on December 2024. 
