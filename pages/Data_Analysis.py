@@ -22,6 +22,9 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import plotly.express as px
+import plotly.graph_objects as go
+
+
 
 with st.spinner("Loading visualizations..."):
     # Load the churn dataset from GitHub
@@ -343,66 +346,81 @@ with st.spinner("Loading visualizations..."):
             ax.set_title(f'Scatter Plot: {column_choice_1} vs {column_choice_2}')
             st.pyplot(fig)
     
-        # Multivariate Analysis (PCA)
-        
+    
         # Multivariate Analysis (PCA)
         elif eda_section == "Multivariate Analysis":
             st.subheader("Multivariate Analysis: PCA")
         
-            # Define PCA scree plot and biplot functions
-            def pca_scree_plot(df):
-                X_scaled = StandardScaler().fit_transform(df)
-                U, s, _ = np.linalg.svd(X_scaled)
-                
-                # Scree plot
-                var_exp = s**2 / np.sum(s**2)
-                cum_var_exp = np.cumsum(var_exp)
+            # Standardize the data
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(churn_df.select_dtypes(include=['float64', 'int64']))
         
-                fig, ax = plt.subplots(figsize=(10, 6))
-                ax.plot(range(1, len(var_exp) + 1), var_exp, 'bo-', label='Individual')
-                ax.plot(range(1, len(cum_var_exp) + 1), cum_var_exp, 'ro-', label='Cumulative')
-                ax.set_xlabel('Principal Component')
-                ax.set_ylabel('Proportion of Variance Explained')
-                ax.set_title('Scree Plot')
-                ax.legend()
-                ax.grid(True)
-                return fig
+            # Perform PCA
+            pca = PCA()
+            pca_result = pca.fit_transform(X_scaled)
+            explained_variance = pca.explained_variance_ratio_
+            cumulative_variance = explained_variance.cumsum()
         
-            def pca_biplot(df, feature_names, scale=3):
-                X_scaled = StandardScaler().fit_transform(df)
-                _, s, Vt = np.linalg.svd(X_scaled)
-                V = Vt.T
+            # Scree Plot using Plotly
+            scree_fig = go.Figure()
+            scree_fig.add_trace(go.Scatter(
+                x=list(range(1, len(explained_variance) + 1)),
+                y=explained_variance,
+                mode='lines+markers',
+                name='Individual'
+            ))
+            scree_fig.add_trace(go.Scatter(
+                x=list(range(1, len(cumulative_variance) + 1)),
+                y=cumulative_variance,
+                mode='lines+markers',
+                name='Cumulative'
+            ))
+            scree_fig.update_layout(
+                title="Scree Plot",
+                xaxis_title="Principal Component",
+                yaxis_title="Proportion of Variance Explained",
+                template="plotly_dark"
+            )
+            st.plotly_chart(scree_fig, use_container_width=True)
         
-                scores = X_scaled @ V  # Project data onto principal components
+            # PCA Biplot using Plotly
+            pc1 = pca_result[:, 0]
+            pc2 = pca_result[:, 1]
+            loadings = pca.components_.T
         
-                fig, ax = plt.subplots(figsize=(10, 8))
-                ax.scatter(scores[:, 0], scores[:, 1], c='b', alpha=0.5, label='Samples')
+            biplot_fig = go.Figure()
         
-                for i, feature in enumerate(feature_names):
-                    x = V[i, 0] * s[0] * scale
-                    y = V[i, 1] * s[1] * scale
-                    ax.arrow(0, 0, x, y, color='r', alpha=0.5, head_width=0.1)
-                    ax.text(x * 1.1, y * 1.1, feature, ha='left' if x >= 0 else 'right', va='bottom' if y >= 0 else 'top')
+            # Add data points (samples)
+            biplot_fig.add_trace(go.Scatter(
+                x=pc1,
+                y=pc2,
+                mode='markers',
+                name='Samples',
+                marker=dict(size=6, color='blue', opacity=0.6)
+            ))
         
-                ax.set_xlabel(f"PC1 ({s[0]**2 / np.sum(s**2):.1%} variance)")
-                ax.set_ylabel(f"PC2 ({s[1]**2 / np.sum(s**2):.1%} variance)")
-                ax.set_title('PCA Biplot')
-                ax.legend(["Samples", "Features"])
-                ax.grid(True)
-                return fig
+            # Add feature vectors (loadings)
+            for i, feature in enumerate(churn_df.select_dtypes(include=['float64', 'int64']).columns):
+                biplot_fig.add_trace(go.Scatter(
+                    x=[0, loadings[i, 0] * max(pc1) * 0.3],
+                    y=[0, loadings[i, 1] * max(pc2) * 0.3],
+                    mode='lines+text',
+                    name=feature,
+                    text=[None, feature],
+                    textposition="top center",
+                    line=dict(color='red', width=2)
+                ))
         
-            # Perform PCA on numerical columns
-            numerical_data = churn_df.select_dtypes(include=['float64', 'int64'])
-            feature_names = numerical_data.columns
+            biplot_fig.update_layout(
+                title="PCA Biplot",
+                xaxis_title=f"PC1 ({explained_variance[0]:.1%} variance)",
+                yaxis_title=f"PC2 ({explained_variance[1]:.1%} variance)",
+                template="plotly_dark",
+                showlegend=False
+            )
+            st.plotly_chart(biplot_fig, use_container_width=True)
         
-            # Scree Plot
-            scree_fig = pca_scree_plot(numerical_data)
-            st.pyplot(scree_fig)
-        
-            # Biplot
-            biplot_fig = pca_biplot(numerical_data, feature_names, scale=2.5)
-            st.pyplot(biplot_fig)
-        
+            
             # Insights
             st.markdown("""
             ### Insights from PCA
