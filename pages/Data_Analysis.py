@@ -269,18 +269,6 @@ with st.spinner("Loading visualizations..."):
             - **Balance**: No significant outliers, but the distribution shows a skew toward higher balances.
             """)
     
-        # Uncommented sections for MICE Imputation and Encoding
-        # st.subheader("MICE Imputation")
-        # st.subheader("Encoding Categorical Variables")
-    
-    # EDA Tab
-    
-    from matplotlib import cm
-    from matplotlib.colors import to_hex
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-    from sklearn.preprocessing import StandardScaler
-    import numpy as np
     
     # EDA Tab
     with tab4:
@@ -361,19 +349,26 @@ with st.spinner("Loading visualizations..."):
             explained_variance = pca.explained_variance_ratio_
             cumulative_variance = explained_variance.cumsum()
         
+            # Convert the colormap to colors
+            colormap = cm.get_cmap(theme)
+            primary_color = to_hex(colormap(0.7))  # For samples
+            secondary_color = to_hex(colormap(0.3))  # For cumulative variance and loadings
+        
             # Scree Plot using Plotly
             scree_fig = go.Figure()
             scree_fig.add_trace(go.Scatter(
                 x=list(range(1, len(explained_variance) + 1)),
                 y=explained_variance,
                 mode='lines+markers',
-                name='Individual'
+                name='Individual',
+                line=dict(color=primary_color)
             ))
             scree_fig.add_trace(go.Scatter(
                 x=list(range(1, len(cumulative_variance) + 1)),
                 y=cumulative_variance,
                 mode='lines+markers',
-                name='Cumulative'
+                name='Cumulative',
+                line=dict(color=secondary_color)
             ))
             scree_fig.update_layout(
                 title="Scree Plot",
@@ -396,7 +391,7 @@ with st.spinner("Loading visualizations..."):
                 y=pc2,
                 mode='markers',
                 name='Samples',
-                marker=dict(size=6, color='blue', opacity=0.6)
+                marker=dict(size=6, color=primary_color, opacity=0.6)
             ))
         
             # Add feature vectors (loadings)
@@ -408,7 +403,7 @@ with st.spinner("Loading visualizations..."):
                     name=feature,
                     text=[None, feature],
                     textposition="top center",
-                    line=dict(color='red', width=2)
+                    line=dict(color=secondary_color, width=2)
                 ))
         
             biplot_fig.update_layout(
@@ -419,7 +414,7 @@ with st.spinner("Loading visualizations..."):
                 showlegend=False
             )
             st.plotly_chart(biplot_fig, use_container_width=True)
-        
+                
             
             # Insights
             st.markdown("""
