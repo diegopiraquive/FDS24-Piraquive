@@ -41,7 +41,11 @@ with st.spinner("Loading visualizations..."):
         It includes demographic, financial, and engagement-related features that help in understanding the behavior of customers.
     
         The dataset is publicly available on [Kaggle](https://www.kaggle.com/datasets/shubhammeshram579/bank-customer-churn-prediction/data).
+
+        All the app documentation is available on [Git Hub Repository](https://github.com/diegopiraquive/FDS24-Piraquive/tree/main)
+        
         """)
+
         st.markdown("""
         ### Variable Descriptions:
         - **Credit Score**: A numerical value representing the customer's credit score.
