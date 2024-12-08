@@ -23,6 +23,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import plotly.express as px
 import plotly.graph_objects as go
+from matplotlib.colors import to_hex
+from matplotlib import cm
 
 
 
